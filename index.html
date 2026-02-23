@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>Gut Instinct — GI/Hepatology Rotation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+:root{
+--bg1:#0a0e1a;--bg2:#0f172a;--bg3:#1a1035;
+--card-bg:rgba(255,255,255,0.05);--card-bg2:rgba(255,255,255,0.08);
+--text1:#e2e8f0;--text2:#94a3b8;--text3:#cbd5e1;
+--border1:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+--scroll-thumb:rgba(255,255,255,0.15);
+--orb1:rgba(99,102,241,0.15);--orb2:rgba(168,85,247,0.12);
+--shadow:rgba(0,0,0,0.3);
+--progress-bg:rgba(0,0,0,0.2);
+}
+.theme-light{
+--bg1:#f0f2f5;--bg2:#e8eaed;--bg3:#f5f3ff;
+--card-bg:#ffffff;--card-bg2:#f8f9fa;
+--text1:#1e293b;--text2:#475569;--text3:#334155;
+--border1:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
+--scroll-thumb:rgba(0,0,0,0.15);
+--orb1:rgba(99,102,241,0.06);--orb2:rgba(168,85,247,0.05);
+--shadow:rgba(0,0,0,0.08);
+--progress-bg:rgba(0,0,0,0.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body,#root{height:100%;width:100%;overflow:hidden;}
+body{
+font-family:'DM Sans',sans-serif;color:var(--text1);
+background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+transition:background 0.3s,color 0.3s;
+}
+body.drawer-open{overflow:hidden;}
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:3px;}
+h1,h2,h3{font-family:'Playfair Display',serif;font-weight:800;}
+code,.mono{font-family:'JetBrains Mono',monospace;}
+.app-root{display:flex;height:100vh;width:100%;position:relative;overflow:hidden;}
+.ambient-orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;}
+.orb1{width:600px;height:600px;background:var(--orb1);top:-200px;left:-200px;}
+.orb2{width:500px;height:500px;background:var(--orb2);bottom:-150px;right:-150px;}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+width:280px;height:100vh;position:fixed;left:0;top:0;
+background:var(--card-bg);backdrop-filter:blur(20px);
+border-right:1px solid var(--border1);
+overflow-y:auto;-webkit-overflow-scrolling:touch;
+z-index:100;display:flex;flex-direction:column;gap:6px;padding:16px 14px;
+transition:transform 0.3s ease;
+}
+.sidebar-logo{
+font-family:'Playfair Display',serif;font-size:22px;font-weight:800;
+background:linear-gradient(135deg,#e2e8f0,#c7d2fe,#a78bfa);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+text-align:center;line-height:1.2;
+}
+.sidebar-tagline{font-size:11px;color:var(--text2);text-align:center;margin-top:2px;}
+.sidebar-welcome{font-size:13px;color:var(--text3);text-align:center;margin:4px 0;}
+.sidebar-divider{height:1px;background:var(--border1);margin:6px 0;}
+
+/* Theme toggle */
+.theme-toggle{
+display:flex;align-items:center;justify-content:center;gap:8px;
+padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;
+background:var(--card-bg2);color:var(--text2);border:1px solid var(--border1);
+transition:all 0.2s;width:100%;
+}
+.theme-toggle:hover{background:rgba(99,102,241,0.15);color:var(--text1);}
+
+/* XP Bar */
+.xp-bar-container{padding:8px 0;}
+.xp-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px;}
+.xp-bar-outer{height:14px;background:var(--progress-bg);border-radius:7px;overflow:hidden;position:relative;border:1px solid var(--border1);}
+.xp-bar-fill{
+height:100%;border-radius:7px;
+background:linear-gradient(90deg,#06b6d4,#10b981);
+transition:width 0.6s ease;position:relative;
+animation:shimmer 2s infinite;
+}
+@keyframes shimmer{
+0%{filter:brightness(1);}50%{filter:brightness(1.3);}100%{filter:brightness(1);}
+}
+.xp-bar-emoji{position:absolute;right:-8px;top:-3px;font-size:18px;transition:right 0.6s ease;}
+.multiplier-badge{
+display:inline-flex;align-items:center;gap:3px;
+padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;
+background:linear-gradient(90deg,#f59e0b,#ef4444);color:#fff;
+}
+
+/* Block progress */
+.block-progress{padding:4px 0;}
+.block-bar-outer{height:6px;background:var(--progress-bg);border-radius:3px;overflow:hidden;margin-top:3px;}
+.block-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#6366f1,#a855f7);transition:width 0.4s;}
+.block-text{font-size:10px;color:var(--text2);margin-top:2px;}
+
+/* Stats row */
+.stats-row{display:flex;gap:10px;justify-content:center;padding:4px 0;}
+.stat-item{
+display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600;
+color:var(--text3);
+}
+
+/* Buttons */
+.sidebar-btn{
+width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border1);
+background:var(--card-bg2);color:var(--text1);font-size:13px;font-weight:600;
+cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;
+transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.sidebar-btn:hover{background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);}
+.sidebar-btn.locked{opacity:0.5;cursor:default;}
+.sidebar-btn.locked:hover{background:var(--card-bg2);border-color:var(--border1);}
+.sidebar-btn.unlocked{
+border-color:rgba(99,102,241,0.5);
+animation:glow-pulse 2s infinite;
+}
+@keyframes glow-pulse{
+0%,100%{box-shadow:0 0 5px rgba(99,102,241,0.3);}
+50%{box-shadow:0 0 15px rgba(99,102,241,0.6);}
+}
+
+/* Topic completion mini bar */
+.topic-completion{padding:4px 0;}
+.tc-bar-outer{height:6px;background:var(--progress-bg);border-radius:3px;overflow:hidden;margin-top:3px;}
+.tc-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#10b981,#06b6d4);transition:width 0.4s;}
+.tc-text{font-size:10px;color:var(--text2);margin-top:2px;}
+
+/* Weekly challenge widget */
+.challenge-widget{
+padding:8px 10px;border-radius:8px;background:var(--card-bg2);
+border:1px solid var(--border1);
+}
+.challenge-title{font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:3px;}
+.challenge-desc{font-size:10px;color:var(--text2);}
+.challenge-bar-outer{height:4px;background:var(--progress-bg);border-radius:2px;margin-top:4px;}
+.challenge-bar-fill{height:100%;border-radius:2px;background:#f59e0b;transition:width 0.4s;}
+
+/* Topic list */
+.topic-list{display:flex;flex-direction:column;gap:2px;}
+.topic-list-item{
+padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;
+color:var(--text2);display:flex;align-items:center;gap:6px;
+transition:all 0.15s;border-left:3px solid transparent;
+}
+.topic-list-item:hover{background:var(--card-bg2);color:var(--text1);}
+.topic-list-item.active{background:var(--card-bg2);color:var(--text1);border-left-color:#6366f1;}
+.topic-check{font-size:11px;flex-shrink:0;}
+
+/* Sound toggle + home btn */
+.sound-toggle{font-size:11px;color:var(--text2);cursor:pointer;text-align:center;padding:4px;}
+.home-btn{
+padding:8px;border-radius:8px;background:var(--card-bg2);color:var(--text1);
+border:1px solid var(--border1);cursor:pointer;text-align:center;font-size:13px;
+font-weight:600;transition:all 0.2s;width:100%;font-family:'DM Sans',sans-serif;
+}
+.home-btn:hover{background:rgba(99,102,241,0.15);}
+
+/* ===== MAIN CONTENT ===== */
+.main-content{
+flex:1;margin-left:280px;height:100vh;overflow-y:auto;
+padding:24px 28px 40px;position:relative;z-index:1;
+}
+
+/* HOME GRID */
+.home-header{text-align:center;margin-bottom:24px;}
+.home-title{
+font-size:32px;
+background:linear-gradient(135deg,#e2e8f0,#c7d2fe,#a78bfa);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.home-subtitle{font-size:14px;color:var(--text2);margin-top:4px;}
+
+/* Cards */
+.posttest-card{
+padding:16px 20px;border-radius:12px;margin-bottom:16px;
+border:1px solid var(--border1);background:var(--card-bg);
+}
+.posttest-card.locked{opacity:0.6;}
+.posttest-card.unlocked{
+border-color:rgba(99,102,241,0.5);
+animation:glow-pulse 2s infinite;
+}
+.pretest-summary{
+padding:12px 16px;border-radius:10px;margin-bottom:16px;
+background:var(--card-bg);border:1px solid var(--border1);
+font-size:13px;color:var(--text2);cursor:pointer;
+transition:all 0.2s;
+}
+.pretest-summary:hover{border-color:rgba(99,102,241,0.3);}
+.pretest-summary .collapse-icon{transition:transform 0.2s;display:inline-block;}
+.pretest-summary .collapse-icon.open{transform:rotate(90deg);}
+
+.topic-grid{
+display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+gap:14px;
+}
+.topic-card{
+padding:16px;border-radius:12px;background:var(--card-bg);
+border:1px solid var(--border1);cursor:pointer;
+transition:all 0.2s;position:relative;
+border-left:4px solid transparent;
+}
+.topic-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px var(--shadow);}
+.topic-card-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+.topic-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.tag-pill{
+padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;
+background:rgba(99,102,241,0.15);color:#a78bfa;
+}
+.topic-card-meta{display:flex;gap:12px;font-size:11px;color:var(--text2);}
+.topic-card-check{position:absolute;top:12px;right:12px;font-size:14px;}
+
+/* ===== DETAIL VIEW ===== */
+.detail-back{
+display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
+border-radius:8px;background:var(--card-bg2);color:var(--text2);
+border:1px solid var(--border1);cursor:pointer;font-size:13px;
+margin-bottom:16px;transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.detail-back:hover{color:var(--text1);background:rgba(99,102,241,0.15);}
+.detail-title{font-size:26px;margin-bottom:16px;line-height:1.2;}
+.section-card{
+padding:16px 18px;border-radius:10px;background:var(--card-bg);
+border:1px solid var(--border1);margin-bottom:12px;
+transition:all 0.2s;
+}
+.section-card.panic{border-left:3px solid #ef4444;}
+.section-card.icu{border-left:3px solid #f97316;}
+.section-card.orders{border-left:3px solid #3b82f6;}
+.section-card.cdi{border-left:3px solid #14b8a6;}
+.section-card.overview{border-left:3px solid #a855f7;}
+.section-card.refs{border-left:3px solid #6366f1;}
+.section-header{
+display:flex;justify-content:space-between;align-items:center;
+font-size:14px;font-weight:700;margin-bottom:8px;
+}
+.section-viewed-icon{font-size:12px;color:#10b981;}
+.bullet-list{list-style:none;padding:0;}
+.bullet-list li{
+padding:5px 0;font-size:13px;line-height:1.5;color:var(--text3);
+border-bottom:1px solid var(--border1);
+}
+.bullet-list li:last-child{border:none;}
+.highlight{
+display:inline;padding:1px 6px;border-radius:4px;font-weight:600;
+background:rgba(99,102,241,0.2);color:#a78bfa;
+}
+.guideline-tag{
+display:inline;padding:1px 6px;border-radius:4px;font-weight:700;
+background:rgba(239,68,68,0.15);color:#f87171;font-size:11px;
+}
+
+/* ===== QUIZ CARD ===== */
+.quiz-card{
+padding:18px;border-radius:12px;background:var(--card-bg);
+border:1px solid var(--border1);margin-bottom:14px;
+}
+.quiz-stem{font-size:14px;line-height:1.6;color:var(--text1);margin-bottom:14px;}
+.quiz-options{display:flex;flex-direction:column;gap:8px;}
+.quiz-option{
+padding:12px 16px;border-radius:10px;border:1px solid var(--border1);
+background:var(--card-bg2);cursor:pointer;font-size:13px;color:var(--text3);
+transition:all 0.15s;
+}
+.quiz-option:hover:not(.disabled){border-color:rgba(99,102,241,0.4);background:rgba(99,102,241,0.08);}
+.quiz-option.selected{border-color:#6366f1;background:rgba(99,102,241,0.15);color:var(--text1);}
+.quiz-option.correct{border-color:#10b981;background:rgba(16,185,129,0.15);color:#10b981;}
+.quiz-option.wrong{border-color:#ef4444;background:rgba(239,68,68,0.1);color:#ef4444;}
+.quiz-option.dimmed{opacity:0.5;}
+.quiz-option.disabled{cursor:default;}
+.quiz-rationale{
+margin-top:12px;padding:12px;border-radius:8px;
+background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);
+font-size:12px;line-height:1.5;color:var(--text3);
+}
+.quiz-submit{
+margin-top:10px;padding:10px 20px;border-radius:8px;border:none;
+background:linear-gradient(90deg,#6366f1,#a855f7);color:#fff;
+font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;
+font-family:'DM Sans',sans-serif;
+}
+.quiz-submit:hover{filter:brightness(1.1);}
+.quiz-submit:disabled{opacity:0.4;cursor:default;}
+
+/* ===== MICRO CARD ===== */
+.micro-card{
+padding:14px 16px;border-radius:10px;background:var(--card-bg);
+border:1px solid var(--border1);margin-bottom:8px;cursor:pointer;
+transition:all 0.2s;
+}
+.micro-card:hover{border-color:rgba(99,102,241,0.3);}
+.micro-q{font-size:13px;color:var(--text1);font-weight:600;}
+.micro-a{
+margin-top:8px;padding:8px 10px;border-radius:6px;
+background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);
+font-size:12px;color:var(--text3);line-height:1.4;
+}
+.micro-flip-hint{font-size:10px;color:var(--text2);margin-top:4px;text-align:right;}
+
+/* ===== REF LINK ===== */
+.ref-link{
+display:block;padding:6px 0;font-size:12px;
+color:#818cf8;text-decoration:none;
+}
+.ref-link:hover{text-decoration:underline;}
+
+/* ===== ASSESSMENT SCREENS ===== */
+.assess-container{
+max-width:700px;margin:0 auto;padding:40px 20px;
+}
+.assess-progress{
+height:4px;background:var(--progress-bg);border-radius:2px;margin-bottom:20px;
+}
+.assess-progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#6366f1,#a855f7);transition:width 0.3s;}
+.assess-header{
+display:flex;justify-content:space-between;align-items:center;
+margin-bottom:20px;font-size:13px;color:var(--text2);
+}
+.assess-timer{font-family:'JetBrains Mono',monospace;font-size:14px;}
+.assess-next{
+margin-top:16px;padding:12px 28px;border-radius:10px;border:none;
+background:linear-gradient(90deg,#6366f1,#a855f7);color:#fff;
+font-weight:700;font-size:14px;cursor:pointer;transition:all 0.2s;float:right;
+font-family:'DM Sans',sans-serif;
+}
+.assess-next:hover{filter:brightness(1.1);}
+.assess-next:disabled{opacity:0.4;cursor:default;}
+
+/* ===== RESULTS ===== */
+.results-container{max-width:800px;margin:0 auto;padding:40px 20px;}
+.results-score{
+text-align:center;font-size:48px;font-weight:800;
+font-family:'Playfair Display',serif;margin-bottom:8px;
+}
+.results-time{text-align:center;font-size:14px;color:var(--text2);margin-bottom:20px;}
+.results-msg{
+text-align:center;font-size:16px;color:var(--text3);margin-bottom:24px;
+padding:12px 20px;border-radius:10px;background:var(--card-bg);
+border:1px solid var(--border1);
+}
+.results-table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+.results-table th{
+text-align:left;padding:8px 10px;font-size:12px;font-weight:700;
+color:var(--text2);border-bottom:2px solid var(--border2);
+}
+.results-table td{
+padding:8px 10px;font-size:13px;color:var(--text3);
+border-bottom:1px solid var(--border1);
+}
+.results-table tr.improved{background:rgba(16,185,129,0.06);}
+.results-table tr.maintained{background:transparent;}
+.results-table tr.gap{background:rgba(234,179,8,0.06);}
+.results-table tr.regressed{background:rgba(239,68,68,0.06);}
+.results-enter{
+display:block;margin:20px auto;padding:14px 36px;border-radius:12px;border:none;
+background:linear-gradient(90deg,#6366f1,#a855f7);color:#fff;
+font-weight:700;font-size:16px;cursor:pointer;transition:all 0.2s;
+font-family:'DM Sans',sans-serif;
+}
+.results-enter:hover{filter:brightness(1.1);transform:scale(1.02);}
+
+/* ===== COMPARISON ===== */
+.comparison-scores{
+display:flex;gap:20px;justify-content:center;align-items:center;
+margin-bottom:24px;flex-wrap:wrap;
+}
+.comp-score-box{
+text-align:center;padding:20px 30px;border-radius:12px;
+background:var(--card-bg);border:1px solid var(--border1);min-width:140px;
+}
+.comp-score-box .label{font-size:12px;color:var(--text2);margin-bottom:4px;}
+.comp-score-box .score{font-size:36px;font-weight:800;font-family:'Playfair Display',serif;}
+.comp-arrow{font-size:28px;color:#6366f1;}
+.comp-improvement{
+text-align:center;font-size:16px;font-weight:700;margin-bottom:20px;
+padding:10px 16px;border-radius:8px;
+}
+.comp-improvement.up{background:rgba(16,185,129,0.15);color:#10b981;}
+.comp-improvement.same{background:rgba(234,179,8,0.15);color:#eab308;}
+.comp-improvement.down{background:rgba(239,68,68,0.15);color:#ef4444;}
+.comp-bar-chart{
+display:flex;gap:20px;justify-content:center;align-items:flex-end;
+margin:24px 0;padding:20px;border-radius:12px;background:var(--card-bg);
+border:1px solid var(--border1);height:180px;
+}
+.comp-bar{
+width:80px;border-radius:8px 8px 0 0;transition:height 0.6s ease;
+display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+padding-bottom:8px;
+}
+.comp-bar-label{font-size:11px;font-weight:700;margin-top:6px;}
+.comp-bar-value{font-size:18px;font-weight:800;font-family:'Playfair Display',serif;}
+.focus-areas{
+padding:14px 18px;border-radius:10px;margin-top:16px;
+background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);
+}
+.focus-areas-title{font-size:14px;font-weight:700;color:#ef4444;margin-bottom:6px;}
+.growth-summary{
+padding:16px 20px;border-radius:10px;margin-top:16px;
+background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);
+text-align:center;
+}
+
+/* ===== ONBOARDING ===== */
+.onboard-container{
+display:flex;align-items:center;justify-content:center;
+height:100vh;width:100%;padding:20px;
+}
+.onboard-card{
+max-width:420px;width:100%;padding:40px 32px;border-radius:16px;
+background:var(--card-bg);backdrop-filter:blur(20px);
+border:1px solid var(--border1);text-align:center;
+}
+.onboard-logo{font-size:36px;margin-bottom:8px;}
+.onboard-title{
+font-size:28px;font-family:'Playfair Display',serif;
+background:linear-gradient(135deg,#e2e8f0,#c7d2fe,#a78bfa);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+margin-bottom:4px;
+}
+.onboard-tagline{font-size:13px;color:var(--text2);margin-bottom:24px;}
+.onboard-field{margin-bottom:16px;text-align:left;}
+.onboard-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.onboard-input,.onboard-select{
+width:100%;padding:10px 14px;border-radius:8px;
+border:1px solid var(--border1);background:var(--card-bg2);
+color:var(--text1);font-size:14px;font-family:'DM Sans',sans-serif;
+outline:none;transition:border 0.2s;
+}
+.onboard-input:focus,.onboard-select:focus{border-color:#6366f1;}
+.onboard-submit{
+width:100%;padding:14px;border-radius:10px;border:none;
+background:linear-gradient(90deg,#6366f1,#a855f7);color:#fff;
+font-weight:700;font-size:15px;cursor:pointer;transition:all 0.2s;
+margin-top:8px;font-family:'DM Sans',sans-serif;
+}
+.onboard-submit:hover{filter:brightness(1.1);}
+.onboard-submit:disabled{opacity:0.4;cursor:default;}
+.onboard-skip{
+display:block;margin-top:12px;font-size:12px;color:var(--text2);
+cursor:pointer;text-decoration:underline;background:none;border:none;
+font-family:'DM Sans',sans-serif;
+}
+.onboard-skip:hover{color:var(--text1);}
+
+/* ===== MODAL ===== */
+.modal-overlay{
+position:fixed;inset:0;background:rgba(0,0,0,0.6);
+z-index:500;display:flex;align-items:center;justify-content:center;
+padding:20px;backdrop-filter:blur(4px);
+}
+.modal-content{
+max-width:600px;width:100%;max-height:85vh;overflow-y:auto;
+background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
+padding:28px 24px;
+}
+.theme-light .modal-content{background:#ffffff;}
+.modal-close{
+float:right;background:none;border:none;color:var(--text2);
+font-size:20px;cursor:pointer;padding:4px;
+}
+.modal-title{font-size:20px;margin-bottom:16px;}
+.modal-section{margin-bottom:16px;}
+.modal-section-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.modal-field{margin-bottom:12px;}
+.modal-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.modal-field input,.modal-field select{
+width:100%;padding:8px 12px;border-radius:8px;
+border:1px solid var(--border1);background:var(--card-bg2);
+color:var(--text1);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;
+}
+.modal-field input:focus,.modal-field select:focus{border-color:#6366f1;}
+.modal-btn{
+padding:8px 16px;border-radius:8px;border:1px solid var(--border1);
+background:var(--card-bg2);color:var(--text1);font-size:12px;font-weight:600;
+cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.modal-btn:hover{background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);}
+.modal-btn.danger{border-color:rgba(239,68,68,0.3);color:#ef4444;}
+.modal-btn.danger:hover{background:rgba(239,68,68,0.15);}
+.modal-btn.primary{background:linear-gradient(90deg,#6366f1,#a855f7);color:#fff;border:none;}
+.modal-btn.primary:hover{filter:brightness(1.1);}
+
+/* Badge grid */
+.badge-grid{
+display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+gap:8px;
+}
+.badge-item{
+text-align:center;padding:8px 4px;border-radius:8px;
+background:var(--card-bg);border:1px solid var(--border1);
+transition:all 0.2s;
+}
+.badge-item.locked{opacity:0.4;filter:grayscale(1);}
+.badge-emoji{font-size:24px;}
+.badge-name{font-size:9px;color:var(--text2);margin-top:2px;line-height:1.2;}
+
+/* SHOP */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.shop-item{
+padding:12px;border-radius:10px;background:var(--card-bg);
+border:1px solid var(--border1);text-align:center;cursor:pointer;
+transition:all 0.2s;
+}
+.shop-item:hover{border-color:rgba(99,102,241,0.3);}
+.shop-item.owned{border-color:#10b981;opacity:0.7;}
+.shop-emoji{font-size:28px;margin-bottom:4px;}
+.shop-name{font-size:12px;font-weight:600;color:var(--text1);}
+.shop-desc{font-size:10px;color:var(--text2);margin:2px 0;}
+.shop-price{font-size:11px;font-weight:700;color:#f59e0b;}
+.shop-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.shop-tab{
+padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;
+cursor:pointer;border:1px solid var(--border1);background:var(--card-bg);
+color:var(--text2);transition:all 0.2s;
+}
+.shop-tab.active{background:rgba(99,102,241,0.15);color:#a78bfa;border-color:rgba(99,102,241,0.3);}
+
+/* ===== TOAST ===== */
+.toast-container{
+position:fixed;top:20px;right:20px;z-index:1000;
+display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.toast{
+padding:12px 18px;border-radius:10px;
+background:var(--bg2);border:1px solid var(--border2);
+color:var(--text1);font-size:13px;font-weight:600;
+box-shadow:0 4px 20px var(--shadow);
+animation:toast-in 0.3s ease;
+display:flex;align-items:center;gap:8px;
+}
+.theme-light .toast{background:#ffffff;}
+.toast.xp{border-left:3px solid #10b981;}
+.toast.badge{border-left:3px solid #f59e0b;}
+.toast.coin{border-left:3px solid #eab308;}
+.toast.level{border-left:3px solid #a855f7;}
+@keyframes toast-in{from{transform:translateX(100px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* ===== MOBILE ===== */
+.mobile-topbar{
+display:none;position:fixed;top:0;left:0;right:0;height:52px;
+background:var(--card-bg);backdrop-filter:blur(20px);
+border-bottom:1px solid var(--border1);z-index:90;
+padding:0 14px;align-items:center;justify-content:space-between;
+}
+.hamburger{
+background:none;border:none;color:var(--text1);font-size:22px;
+cursor:pointer;padding:4px;
+}
+.mobile-stats{display:flex;gap:10px;align-items:center;font-size:12px;font-weight:600;}
+@media(max-width:768px){
+.mobile-topbar{display:flex;}
+.sidebar{transform:translateX(-100%);padding-bottom:40px;}
+.sidebar.open{transform:translateX(0);}
+.main-content{margin-left:0;padding:64px 14px 30px;}
+.drawer-overlay{
+position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;
+}
+.home-title{font-size:24px;}
+.topic-grid{grid-template-columns:1fr;}
+.comparison-scores{flex-direction:column;align-items:center;}
+.comp-arrow{transform:rotate(90deg);}
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.fade-in-up{animation:fadeInUp 0.3s ease forwards;}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px;}
+.loading-bar{width:200px;height:4px;background:var(--progress-bg);border-radius:2px;overflow:hidden;}
+.loading-fill{height:100%;background:linear-gradient(90deg,#6366f1,#a855f7);animation:load 1.5s ease infinite;width:40%;}
+@keyframes load{0%{transform:translateX(-100%);}100%{transform:translateX(350%);}}
+
+/* Confirm dialog inline */
+.confirm-box{
+padding:12px;border-radius:8px;background:rgba(239,68,68,0.08);
+border:1px solid rgba(239,68,68,0.2);margin-top:8px;
+}
+.confirm-box input{
+width:100%;padding:8px;border-radius:6px;border:1px solid var(--border1);
+background:var(--card-bg2);color:var(--text1);font-family:'DM Sans',sans-serif;
+font-size:13px;margin-top:6px;outline:none;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// ============================================================
+// SOUND ENGINE — Web Audio API (plain JS, before Babel)
+// ============================================================
+(function(){
+var audioCtx=null;
+function getCtx(){
+  if(!audioCtx)try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  return audioCtx;
+}
+function playTone(freq,dur,type,vol){
+  var ctx=getCtx();if(!ctx)return;
+  var osc=ctx.createOscillator();
+  var gain=ctx.createGain();
+  osc.connect(gain);gain.connect(ctx.destination);
+  osc.type=type||'sine';osc.frequency.value=freq;
+  gain.gain.value=vol||0.15;
+  gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+(dur||0.2));
+  osc.start(ctx.currentTime);osc.stop(ctx.currentTime+(dur||0.2));
+}
+window.SoundFX={
+  xp:function(){playTone(880,0.1,'sine',0.1);setTimeout(function(){playTone(1100,0.15,'sine',0.1);},80);},
+  correct:function(){playTone(660,0.1,'sine',0.12);setTimeout(function(){playTone(880,0.15,'sine',0.12);},100);setTimeout(function(){playTone(1100,0.2,'sine',0.1);},200);},
+  wrong:function(){playTone(200,0.3,'sawtooth',0.08);},
+  levelup:function(){playTone(523,0.15,'sine',0.12);setTimeout(function(){playTone(659,0.15,'sine',0.12);},120);setTimeout(function(){playTone(784,0.15,'sine',0.12);},240);setTimeout(function(){playTone(1047,0.3,'sine',0.1);},360);},
+  badge:function(){playTone(1047,0.1,'sine',0.1);setTimeout(function(){playTone(1319,0.2,'sine',0.1);},100);},
+  coin:function(){playTone(1500,0.05,'square',0.06);setTimeout(function(){playTone(2000,0.1,'square',0.06);},60);},
+  multiplier:function(){playTone(400,0.1,'sine',0.1);setTimeout(function(){playTone(600,0.1,'sine',0.1);},80);setTimeout(function(){playTone(900,0.15,'sine',0.1);},160);}
+};
+})();
+</script>
+<script type="text/babel">
+// ============================================================
+// GUT INSTINCT — Complete React App (Corrected v2)
+// ============================================================
+const {useState,useEffect,useRef,useCallback,useMemo,createContext,useContext} = React;
+
+// ---- APP IDENTITY ----
+const APP_NAME = 'Gut Instinct';
+const TAGLINE = 'Master the Belly, Trust the Gut';
+const STORAGE_KEY = 'gutInstinct';
+const TRACKER_EMOJI = '🔬';
+
+// ---- ACCENT COLORS ----
+const ACCENT_COLORS = ["#6366f1","#a855f7","#ec4899","#f97316","#14b8a6","#3b82f6","#8b5cf6","#ef4444","#10b981","#f59e0b"];
+
+// ---- LEVELS ----
+const LEVELS = [
+  {lv:1,xp:0,name:'Stool Sample Squinter'},
+  {lv:2,xp:500,name:'Lipase Looker'},
+  {lv:3,xp:1200,name:'Guaiac Guesser'},
+  {lv:4,xp:2500,name:'Lactulose Titrator'},
+  {lv:5,xp:4500,name:'Biopsy Boss'},
+  {lv:6,xp:7500,name:'Paracentesis Pro'},
+  {lv:7,xp:11500,name:'Scope Sharpshooter'},
+  {lv:8,xp:17000,name:'Portal Pressure Slayer'},
+  {lv:9,xp:24000,name:'Hepatology Hawk'},
+  {lv:10,xp:35000,name:'The GI Whisperer'},
+];
+
+// ---- BADGES (33 total) ----
+const BADGE_DEFS = [
+  // Topic Mastery (12)
+  {id:'tm-bleed-master',name:'Bleed Wrangler',emoji:'🩸',type:'topic',kw:['upper-gi-bleeding','lower-gi-bleeding','bleed']},
+  {id:'tm-liver-sage',name:'Liver Sage',emoji:'🫀',type:'topic',kw:['acute-hepatitis','acute-liver-failure','hepatitis']},
+  {id:'tm-gut-bug',name:'Gut Bug Hunter',emoji:'🦠',type:'topic',kw:['clostridioides-difficile','acute-diarrhea','difficile']},
+  {id:'tm-scope-jockey',name:'Scope Jockey',emoji:'🔭',type:'topic',kw:['gerd','esophageal','colorectal','screening']},
+  {id:'tm-bile-whisperer',name:'Bile Whisperer',emoji:'💚',type:'topic',kw:['biliary-disease','cholangitis','gallstone']},
+  {id:'tm-pancreas-tamer',name:'Pancreas Tamer',emoji:'🔥',type:'topic',kw:['acute-pancreatitis','pancreatitis','lipase']},
+  {id:'tm-portal-lord',name:'Portal Pressure Lord',emoji:'🌀',type:'topic',kw:['cirrhosis','portal-hypertension','varices']},
+  {id:'tm-bowel-warrior',name:'Bowel Warrior',emoji:'⚔️',type:'topic',kw:['inflammatory-bowel','colitis','crohn']},
+  {id:'tm-brain-fog',name:'Brain Fog Buster',emoji:'🧠',type:'topic',kw:['hepatic-encephalopathy','encephalopathy','lactulose']},
+  {id:'tm-nutrition-nerd',name:'Nutrition Nerd',emoji:'🥗',type:'topic',kw:['nutrition','enteral-feeding','refeeding']},
+  {id:'tm-celiac-sleuth',name:'Celiac Sleuth',emoji:'🌾',type:'topic',kw:['celiac-disease','gluten','celiac']},
+  {id:'tm-ischemia-spotter',name:'Ischemia Spotter',emoji:'🫨',type:'topic',kw:['mesenteric-ischemia','ischemia','mesenteric']},
+  // Streak & Consistency (8)
+  {id:'streak2',name:'Two-Day Tube Feed',emoji:'🥤',type:'streak',cond:'streak2'},
+  {id:'streak4',name:'Four-Day Flush',emoji:'🚿',type:'streak',cond:'streak4'},
+  {id:'streak6',name:'Six-Day Scope Run',emoji:'🔬',type:'streak',cond:'streak6'},
+  {id:'streak8',name:'Eight-Day Endurance',emoji:'💪',type:'streak',cond:'streak8'},
+  {id:'quiz100',name:'Century of Questions',emoji:'💯',type:'streak',cond:'quiz100'},
+  {id:'topics15',name:'Ward Walker',emoji:'🚶',type:'streak',cond:'topics15'},
+  {id:'days10',name:'Ten-Day Rotation Vet',emoji:'🏥',type:'streak',cond:'days10'},
+  {id:'weekendChallenge',name:'Weekend Warrior GI',emoji:'🏆',type:'streak',cond:'weekendChallenge'},
+  // Skill & Performance (7)
+  {id:'electrolyteQ10',name:'Electrolyte Equalizer',emoji:'⚡',type:'skill',cond:'electrolyteQ10'},
+  {id:'sepsisPerf',name:'Infection Instinct',emoji:'🎯',type:'skill',cond:'sepsisPerf'},
+  {id:'hotStreak',name:'Hot Streak — 5 in a Row',emoji:'🔥',type:'skill',cond:'hotStreak'},
+  {id:'speed4min',name:'Speed Scoper',emoji:'⏱️',type:'skill',cond:'speed4min'},
+  {id:'perfectQuiz',name:'Perfect Prep',emoji:'✨',type:'skill',cond:'perfectQuiz'},
+  {id:'mult5x',name:'Max Multiplier',emoji:'🚀',type:'skill',cond:'mult5x'},
+  {id:'quiz200',name:'Quiz Machine',emoji:'🤖',type:'skill',cond:'quiz200'},
+  // Secret (5)
+  {id:'coins500',name:'Golden Gallstone',emoji:'💎',type:'secret',cond:'coins500'},
+  {id:'lvl10at3am',name:'3 AM Attending',emoji:'🦉',type:'secret',cond:'lvl10at3am'},
+  {id:'allMicro',name:'Micro-Question Maniac',emoji:'🧬',type:'secret',cond:'allMicro'},
+  {id:'allBadges',name:'Complete Colonoscopy',emoji:'🏅',type:'secret',cond:'allBadges'},
+  {id:'ghost10',name:'Ghost Scoper',emoji:'👻',type:'secret',cond:'ghost10'},
+  // Assessment (1)
+  {id:'assessmentComplete',name:'Assessment Complete',emoji:'📋',type:'assessment',cond:'assessmentComplete'},
+];
+
+// ---- SHOP ITEMS ----
+const SHOP_ITEMS = {
+  avatars:[
+    {id:'avatar-scope',name:'The Golden Scope',desc:'Shiny endoscope tracker',price:100,emoji:'🔬'},
+    {id:'avatar-liver',name:'Liver Lover',desc:'Happy little liver',price:150,emoji:'🫀'},
+    {id:'avatar-poop',name:'The Dignified Stool',desc:'Because someone had to',price:200,emoji:'💩'},
+    {id:'avatar-gallbladder',name:'Gallbladder Gary',desc:'Inflamed and he knows it',price:250,emoji:'💚'},
+    {id:'avatar-pill',name:'PPI Pete',desc:'Tiny PPI capsule',price:300,emoji:'💊'},
+    {id:'avatar-octreotide',name:'Octreotide Octopus',desc:'Eight arms for eight drips',price:350,emoji:'🐙'},
+    {id:'avatar-lactulose',name:'Lactulose Lightning',desc:'Titrated to perfection',price:400,emoji:'⚡'},
+    {id:'avatar-ercp',name:'ERCP Royalty',desc:'The crown jewel',price:500,emoji:'👑'},
+  ],
+  memes:[
+    {id:'meme-1',name:'Paged at 3 AM',desc:'"Patient hasn\'t pooped in 2 days"',price:80,emoji:'📟'},
+    {id:'meme-2',name:'Beets or Bleed?',desc:'The eternal question',price:80,emoji:'🫑'},
+    {id:'meme-3',name:'Lipase Drama',desc:'"I\'m only 4x ULN..."',price:100,emoji:'🎭'},
+    {id:'meme-4',name:'HE at 2 AM',desc:'*tries to leave AMA*',price:100,emoji:'🌙'},
+    {id:'meme-5',name:'Lactulose Goals',desc:'"How many BMs?" "Yes."',price:120,emoji:'🎯'},
+    {id:'meme-6',name:'Scope in the Morning',desc:'It\'s always scope in the morning',price:120,emoji:'☀️'},
+    {id:'meme-7',name:'FFP Pain',desc:'INR 1.8 in cirrhosis intern moment',price:150,emoji:'😬'},
+  ],
+  certs:[
+    {id:'cert-1',name:'GI Rotation Survivor',desc:'4 weeks of stool samples',price:120,emoji:'🎖️'},
+    {id:'cert-2',name:'Scope-Ready Scholar',desc:'All 20 modules complete',price:150,emoji:'📜'},
+    {id:'cert-3',name:'Board-Prep Champion',desc:'Aced the post-test',price:200,emoji:'🏆'},
+  ],
+  boosts:[
+    {id:'boost-24h',name:'24h ×1.5 Boost',desc:'Temporary multiplier (consumable)',price:300,emoji:'⚡',consumable:true},
+    {id:'custom-bar',name:'Custom Bar Color',desc:'Choose your gradient',price:200,emoji:'🎨'},
+    {id:'boost-sounds',name:'GI Sound Pack',desc:'Bowel sounds for level-ups',price:150,emoji:'🔊'},
+  ],
+};
+
+// ---- WEEKLY CHALLENGES (deterministic by ISO week) ----
+const CHALLENGES = [
+  {id:'c1',name:'Scope Sprint',desc:'Open 3 new topics',target:3,key:'topicsOpened'},
+  {id:'c2',name:'Quiz Blitz',desc:'Answer 5 questions correctly',target:5,key:'correctAnswers'},
+  {id:'c3',name:'Micro Maestro',desc:'Flip 20 micro-questions',target:20,key:'microsFlipped'},
+  {id:'c4',name:'Perfect Prep',desc:'Score 100% on a topic quiz',target:1,key:'perfectQuizzes'},
+  {id:'c5',name:'Deep Dive',desc:'Read every section of 1 topic',target:1,key:'deepDives'},
+  {id:'c6',name:'Knowledge Streak',desc:'5 correct in a row',target:5,key:'correctStreak'},
+  {id:'c7',name:'XP Machine',desc:'Earn 500 XP this week',target:500,key:'weeklyXP'},
+];
+
+function getISOWeek(){
+  const d=new Date();const dayNum=d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()+4-dayNum);
+  const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d-yearStart)/86400000)+1)/7);
+}
+
+const SECTION_ORDER = ['panic_card','brief_overview','icu_consult_triggers','orders_to_place_now','cdi'];
+const SECTION_NAMES = {
+  panic_card:'🚨 Panic Card',
+  brief_overview:'📋 Brief Overview',
+  icu_consult_triggers:'🏥 ICU / Consult Triggers',
+  orders_to_place_now:'📝 Orders to Place Now',
+  cdi:'📄 CDI Documentation',
+};
+const SECTION_CLASSES = {
+  panic_card:'panic',brief_overview:'overview',
+  icu_consult_triggers:'icu',orders_to_place_now:'orders',cdi:'cdi',
+};
+
+const PGY_OPTIONS = ['PGY-1','PGY-2','PGY-3','PGY-4','PGY-5','PGY-6+','Fellow','Attending','Other'];
+
+// ---- STORAGE ----
+function loadState(){
+  try{const s=localStorage.getItem(STORAGE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}
+}
+function saveState(state){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
+}
+
+// ---- INITIAL STATE (matches spec schema) ----
+function freshState(name,pgy){
+  const today = new Date().toISOString().slice(0,10);
+  return {
+    // Onboarding
+    userName: name || '',
+    pgyLevel: pgy || 'PGY-2',
+    onboardingComplete: false,
+
+    // Pre-Test
+    pretest: {
+      completed: false, skipped: false,
+      startedAt: null, completedAt: null,
+      answers: {}, score: 0, totalQuestions: 20,
+      perTopic: {}
+    },
+
+    // Post-Test
+    posttest: {
+      completed: false,
+      startedAt: null, completedAt: null,
+      answers: {}, score: 0, totalQuestions: 20,
+      perTopic: {}
+    },
+
+    // Topic Completion Tracking
+    topicCompletion: {},
+
+    // Gamification
+    xp: 0, level: 1, coins: 0, coinsLifetime: 0,
+    streak: { count: 0, lastActiveDate: null },
+    badges: [], topicsOpened: [],
+    quizAnswers: {}, // { "topicId:qIdx": "B" }
+    microFlipped: [], // ["topicId:idx", ...]
+    sectionsViewed: {}, // { "topicId:sectionKey": true }
+    shop: { purchased: [], equipped: { avatar: null, meme: null } },
+    hotStreak: { count: 0, bonusExpiresAt: null },
+    challengeBonus: { multiplier: 1, expiresAt: null },
+    boostExpiry: null,
+    soundEnabled: false,
+    daysLogged: [today],
+    weeklyChallenge: { week: null, progress: {} },
+    sessionStartXP: 0,
+    nightQuizCorrect: 0, nightQuizTotal: 0, nightStart: null,
+    theme: 'dark',
+    blockStartDate: today,
+
+    // Legacy compat
+    totalCorrect: 0, totalAnswered: 0,
+    correctStreak: 0, bestStreak: 0,
+  };
+}
+
+// ---- LEVEL HELPERS ----
+function getLevel(xp){
+  let lv=LEVELS[0];
+  for(const l of LEVELS){if(xp>=l.xp)lv=l;}
+  return lv;
+}
+function getNextLevel(xp){
+  const cur=getLevel(xp);
+  return LEVELS.find(l=>l.xp>cur.xp)||cur;
+}
+function xpToNext(xp){
+  const next=getNextLevel(xp);
+  const cur=getLevel(xp);
+  if(next.lv===cur.lv)return{pct:100,need:0,total:1};
+  const progress=xp-cur.xp;
+  const total=next.xp-cur.xp;
+  return{pct:Math.min(100,Math.round(progress/total*100)),need:total-progress,total};
+}
+function formatTime(s){
+  const m=Math.floor(s/60);
+  const sec=s%60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+// ---- Compute topic completion (3 of 4 criteria) ----
+function computeTopicCompletion(topic, state){
+  const id = topic.id;
+  let opened = (state.topicsOpened||[]).includes(id);
+
+  // Sections viewed count
+  const allSections = SECTION_ORDER.filter(sk => topic.sections && topic.sections[sk] && topic.sections[sk].length > 0);
+  const viewedSections = allSections.filter(sk => (state.sectionsViewed||{})[`${id}:${sk}`]);
+  const sectionsOk = viewedSections.length >= Math.min(4, allSections.length);
+
+  // Quizzes answered
+  const totalQuizzes = (topic.quizzes||[]).length;
+  let quizzesAnswered = 0;
+  for(let i=0;i<totalQuizzes;i++){
+    if((state.quizAnswers||{})[`${id}:${i}`] !== undefined) quizzesAnswered++;
+  }
+  const quizzesOk = totalQuizzes > 0 ? quizzesAnswered >= totalQuizzes : true;
+
+  // Micros flipped
+  const totalMicros = (topic.micro_questions||[]).length;
+  let microsFlipped = 0;
+  for(let i=0;i<totalMicros;i++){
+    if((state.microFlipped||[]).includes(`${id}:${i}`)) microsFlipped++;
+  }
+  const microsOk = totalMicros > 0 ? microsFlipped >= totalMicros : true;
+
+  let criteriaMet = 0;
+  if(opened) criteriaMet++;
+  if(sectionsOk) criteriaMet++;
+  if(quizzesOk) criteriaMet++;
+  if(microsOk) criteriaMet++;
+
+  return {
+    opened, sectionsViewed: viewedSections.length, totalSections: allSections.length,
+    quizzesAnswered, totalQuizzes,
+    microsFlipped, totalMicros,
+    criteriaMetCount: criteriaMet,
+    isComplete: criteriaMet >= 3,
+    sectionsOk, quizzesOk, microsOk
+  };
+}
+
+// ---- MULTIPLIER CALCULATOR ----
+function getMultiplier(state){
+  let mult = 1;
+  const streakCount = state.streak?.count || 0;
+  if(streakCount >= 8) mult *= 3;
+  else if(streakCount >= 6) mult *= 2.5;
+  else if(streakCount >= 4) mult *= 2;
+  else if(streakCount >= 2) mult *= 1.5;
+
+  const hr = new Date().getHours();
+  if(hr >= 22 || hr < 6) mult *= 1.3;
+
+  // Hot streak bonus
+  if(state.hotStreak?.bonusExpiresAt && Date.now() < state.hotStreak.bonusExpiresAt){
+    mult *= 1.8;
+  }
+
+  // Challenge bonus
+  if(state.challengeBonus?.expiresAt && Date.now() < state.challengeBonus.expiresAt){
+    mult *= 2.0;
+  }
+
+  // 24h Boost
+  if(state.boostExpiry && Date.now() < state.boostExpiry){
+    mult *= 1.5;
+  }
+
+  return Math.min(mult, 5);
+}
+
+// ---- TOAST CONTEXT ----
+const ToastCtx = createContext(null);
+function ToastProvider({children}){
+  const [toasts,setToasts]=useState([]);
+  const addToast=useCallback((msg,type='xp')=>{
+    const id=Date.now()+Math.random();
+    setToasts(t=>[...t,{id,msg,type}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),3500);
+  },[]);
+  return React.createElement(ToastCtx.Provider,{value:addToast},
+    children,
+    React.createElement('div',{className:'toast-container'},
+      toasts.map(t=>React.createElement('div',{key:t.id,className:`toast ${t.type}`},t.msg))
+    )
+  );
+}
+function useToast(){return useContext(ToastCtx);}
+
+// ---- CONFETTI ----
+function fireConfetti(){
+  if(typeof confetti==='function'){
+    confetti({particleCount:80,spread:60,origin:{y:0.6}});
+  }
+}
+
+// ---- RENDER MARKDOWN-ISH TEXT ----
+function RenderText({text}){
+  if(!text)return null;
+  const parts=text.split(/(\*\*[^*]+\*\*|\{[^}]+\})/g);
+  return React.createElement('span',null,
+    parts.map((p,i)=>{
+      if(p.startsWith('**')&&p.endsWith('**')){
+        return React.createElement('span',{key:i,className:'highlight'},p.slice(2,-2));
+      }
+      if(p.startsWith('{')&&p.endsWith('}')){
+        return React.createElement('span',{key:i,className:'highlight'},p.slice(1,-1));
+      }
+      return p.replace(/citeturn\d+search\d+/g,'');
+    })
+  );
+}
+function hasGuideline(text){return text && text.includes('Guideline Must');}
+
+// ---- TOPIC COLOR ----
+function getTopicColor(t,idx){
+  const tags=(t.tags||[]).join(' ').toLowerCase();
+  if(tags.includes('hepat')||tags.includes('liver')||tags.includes('cirrhosis'))return'#f59e0b';
+  if(tags.includes('bleed'))return'#ef4444';
+  if(tags.includes('infect')||tags.includes('difficile'))return'#10b981';
+  if(tags.includes('screening')||tags.includes('colorectal'))return'#8b5cf6';
+  if(tags.includes('biliary'))return'#f97316';
+  if(tags.includes('pancrea'))return'#dc2626';
+  if(tags.includes('esophag')||tags.includes('gerd'))return'#06b6d4';
+  if(tags.includes('bowel')||tags.includes('ibd'))return'#ec4899';
+  if(tags.includes('nutrition'))return'#84cc16';
+  if(tags.includes('ischemia')||tags.includes('mesenteric'))return'#7c3aed';
+  if(tags.includes('celiac'))return'#d97706';
+  if(tags.includes('diarrhea'))return'#14b8a6';
+  return ACCENT_COLORS[(idx||0) % ACCENT_COLORS.length];
+}
+
+// ============================================================
+// APP COMPONENT
+// ============================================================
+function App({data}){
+  const [state,setState]=useState(()=>{
+    const saved=loadState();
+    if(saved && saved.onboardingComplete) return saved;
+    // Migrate old state format
+    if(saved && saved.user && saved.user.name){
+      return migrateState(saved);
+    }
+    return null;
+  });
+  const [view,setView]=useState('home');
+  const [selectedTopic,setSelectedTopic]=useState(null);
+  const [sidebarOpen,setSidebarOpen]=useState(false);
+  const [modal,setModal]=useState(null);
+  const toast=useToast();
+
+  // Migrate old state format to new
+  function migrateState(old){
+    const s = freshState(old.user?.name||'', old.user?.role||'PGY-2');
+    s.onboardingComplete = true;
+    s.xp = old.xp||0;
+    s.coins = old.coins||0;
+    s.coinsLifetime = old.coins||0;
+    s.streak = {count: old.streak||0, lastActiveDate: old.lastLoginDate||null};
+    s.badges = old.badges||[];
+    s.topicsOpened = old.topicsViewed||[];
+    s.sectionsViewed = old.sectionsViewed||{};
+    s.microFlipped = old.microsFlipped||[];
+    s.shop = {purchased: old.ownedItems||[], equipped:{avatar: old.activeAvatar||null, meme:null}};
+    s.soundEnabled = old.soundOn||false;
+    s.theme = old.darkMode===false ? 'light' : 'dark';
+    s.totalCorrect = old.totalCorrect||0;
+    s.totalAnswered = old.totalAnswered||0;
+    s.correctStreak = old.correctStreak||0;
+    s.bestStreak = old.bestStreak||0;
+    // Migrate pretest
+    if(old.pretestDone){
+      s.pretest.completed = true;
+      s.pretest.score = old.pretestScore||0;
+      s.pretest.perTopic = {};
+      if(old.pretestResults){
+        old.pretestResults.forEach(r => {
+          s.pretest.perTopic[r.topicSlug] = {correct:r.isCorrect,userAnswer:r.selected,correctAnswer:r.correct};
+          s.pretest.answers[r.questionId] = r.selected;
+        });
+      }
+    }
+    if(old.pretestSkipped) s.pretest.skipped = true;
+    // Migrate posttest
+    if(old.posttestDone){
+      s.posttest.completed = true;
+      s.posttest.score = old.posttestScore||0;
+      if(old.posttestResults){
+        old.posttestResults.forEach(r => {
+          s.posttest.perTopic[r.topicSlug] = {correct:r.isCorrect,userAnswer:r.selected,correctAnswer:r.correct};
+          s.posttest.answers[r.questionId] = r.selected;
+        });
+      }
+    }
+    s.blockStartDate = old.daysLogged?.[0] || new Date().toISOString().slice(0,10);
+    s.daysLogged = old.daysLogged || [new Date().toISOString().slice(0,10)];
+    return s;
+  }
+
+  // Save on every state change
+  useEffect(()=>{if(state)saveState(state);},[state]);
+
+  // Apply theme class
+  useEffect(()=>{
+    if(!state) return;
+    const root = document.getElementById('root');
+    if(state.theme==='light'){
+      root.classList.add('theme-light');
+    } else {
+      root.classList.remove('theme-light');
+    }
+  },[state?.theme]);
+
+  // Body scroll lock for drawer
+  useEffect(()=>{
+    if(sidebarOpen) document.body.classList.add('drawer-open');
+    else document.body.classList.remove('drawer-open');
+  },[sidebarOpen]);
+
+  // Streak management + daily login
+  useEffect(()=>{
+    if(!state) return;
+    const today = new Date().toISOString().slice(0,10);
+    const lastActive = state.streak?.lastActiveDate;
+    if(lastActive !== today){
+      setState(s=>{
+        const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+        const newCount = s.streak?.lastActiveDate===yesterday ? (s.streak.count||0)+1 : 1;
+        const newDays = [...new Set([...(s.daysLogged||[]), today])];
+        return {...s, streak:{count:newCount, lastActiveDate:today}, daysLogged:newDays};
+      });
+    }
+  },[state?.streak?.lastActiveDate]);
+
+  // Weekly challenge (deterministic by ISO week)
+  useEffect(()=>{
+    if(!state) return;
+    const week = getISOWeek();
+    if(state.weeklyChallenge?.week !== week){
+      const idx = week % CHALLENGES.length;
+      setState(s=>({...s, weeklyChallenge:{week, progress:{}}, _currentChallenge: CHALLENGES[idx]}));
+    }
+  },[state?.weeklyChallenge?.week]);
+
+  const currentChallenge = useMemo(()=>{
+    if(!state?.weeklyChallenge?.week) return CHALLENGES[0];
+    return CHALLENGES[state.weeklyChallenge.week % CHALLENGES.length];
+  },[state?.weeklyChallenge?.week]);
+
+  // ---- Play sound helper ----
+  const playSound = useCallback((type)=>{
+    if(state?.soundEnabled && window.SoundFX && window.SoundFX[type]){
+      window.SoundFX[type]();
+    }
+  },[state?.soundEnabled]);
+
+  // ---- GAME ENGINE ----
+  const addXP = useCallback((amount,reason)=>{
+    setState(s=>{
+      const mult = getMultiplier(s);
+      const gained = Math.round(amount * mult);
+      const newXP = s.xp + gained;
+      const oldLv = getLevel(s.xp);
+      const newLv = getLevel(newXP);
+      const coinGain = Math.floor(gained/10);
+      let newCoins = s.coins + coinGain;
+      let newCoinsLife = (s.coinsLifetime||0) + coinGain;
+
+      if(newLv.lv > oldLv.lv){
+        newCoins += 50;
+        newCoinsLife += 50;
+        setTimeout(()=>{
+          toast(`🎉 Level Up! ${newLv.name} (Lv${newLv.lv})`,'level');
+          fireConfetti();
+          playSound('levelup');
+        },300);
+      }
+      if(gained > 0){
+        setTimeout(()=>{
+          toast(`+${gained} XP ${mult>1?`(×${mult.toFixed(1)})`:''} ${reason||''}`,'xp');
+          playSound('xp');
+        },100);
+      }
+      // Weekly progress
+      let wp = {...(s.weeklyChallenge?.progress||{})};
+      wp.weeklyXP = (wp.weeklyXP||0) + gained;
+
+      return {...s, xp:newXP, coins:newCoins, coinsLifetime:newCoinsLife,
+        weeklyChallenge:{...s.weeklyChallenge, progress:wp}};
+    });
+  },[toast,playSound]);
+
+  const addCoins = useCallback((n,reason)=>{
+    setState(s=>({...s, coins:s.coins+n, coinsLifetime:(s.coinsLifetime||0)+n}));
+    if(reason){
+      toast(`+${n} 🪙 ${reason}`,'coin');
+      playSound('coin');
+    }
+  },[toast,playSound]);
+
+  const awardBadge = useCallback((badgeId)=>{
+    setState(s=>{
+      if(s.badges.includes(badgeId)) return s;
+      const badge = BADGE_DEFS.find(b=>b.id===badgeId);
+      if(!badge) return s;
+      setTimeout(()=>{
+        toast(`${badge.emoji} Badge: ${badge.name}`,'badge');
+        fireConfetti();
+        playSound('badge');
+      },500);
+      return {...s, badges:[...s.badges,badgeId], coins:s.coins+25, coinsLifetime:(s.coinsLifetime||0)+25};
+    });
+  },[toast,playSound]);
+
+  // Badge checking
+  const checkBadges = useCallback((s)=>{
+    if(!s) return;
+    const sc = s.streak?.count||0;
+    if(sc>=2) awardBadge('streak2');
+    if(sc>=4) awardBadge('streak4');
+    if(sc>=6) awardBadge('streak6');
+    if(sc>=8) awardBadge('streak8');
+    if(s.totalAnswered>=100) awardBadge('quiz100');
+    if(s.totalAnswered>=200) awardBadge('quiz200');
+    if((s.topicsOpened||[]).length>=15) awardBadge('topics15');
+    if((s.coinsLifetime||0)>=500) awardBadge('coins500');
+    if(s.correctStreak>=5) awardBadge('hotStreak');
+    if((s.daysLogged||[]).length>=10) awardBadge('days10');
+    const hr=new Date().getHours();
+    if(hr>=2 && hr<5 && getLevel(s.xp).lv>=10) awardBadge('lvl10at3am');
+    // All micros
+    const totalMicros = data.topics.reduce((a,t)=>a+(t.micro_questions||[]).length,0);
+    if((s.microFlipped||[]).length>=totalMicros && totalMicros>0) awardBadge('allMicro');
+    // Multiplier 5x
+    if(getMultiplier(s)>=5) awardBadge('mult5x');
+  },[awardBadge,data]);
+
+  useEffect(()=>{if(state) checkBadges(state);},[
+    state?.xp, state?.streak?.count, state?.topicsOpened?.length,
+    state?.totalAnswered, state?.coinsLifetime, state?.correctStreak,
+    state?.microFlipped?.length, state?.daysLogged?.length
+  ]);
+
+  // ---- Topic badge checking ----
+  const checkTopicBadges = useCallback((topicId)=>{
+    BADGE_DEFS.filter(b=>b.type==='topic').forEach(badge=>{
+      if(badge.kw.some(kw => topicId.includes(kw))){
+        awardBadge(badge.id);
+      }
+    });
+  },[awardBadge]);
+
+  // ---- ACTIONS ----
+  const markTopicViewed = useCallback((topicId)=>{
+    setState(s=>{
+      if((s.topicsOpened||[]).includes(topicId)) return s;
+      const newTO = [...(s.topicsOpened||[]), topicId];
+      let wp = {...(s.weeklyChallenge?.progress||{})};
+      wp.topicsOpened = (wp.topicsOpened||0)+1;
+      return {...s, topicsOpened:newTO, weeklyChallenge:{...s.weeklyChallenge, progress:wp}};
+    });
+    addXP(75,'topic opened');
+    checkTopicBadges(topicId);
+  },[addXP,checkTopicBadges]);
+
+  const markSectionViewed = useCallback((topicId,sectionKey)=>{
+    const key = `${topicId}:${sectionKey}`;
+    setState(s=>{
+      if((s.sectionsViewed||{})[key]) return s;
+      const newSV = {...(s.sectionsViewed||{}), [key]:true};
+      // Check deep dive
+      const topic = data.topics.find(t=>t.id===topicId);
+      let wp = {...(s.weeklyChallenge?.progress||{})};
+      if(topic){
+        const allSections = SECTION_ORDER.filter(sk=>topic.sections[sk]&&topic.sections[sk].length>0);
+        const viewed = allSections.filter(sk=>newSV[`${topicId}:${sk}`]);
+        if(viewed.length===allSections.length){
+          wp.deepDives = (wp.deepDives||0)+1;
+        }
+      }
+      return {...s, sectionsViewed:newSV, weeklyChallenge:{...s.weeklyChallenge, progress:wp}};
+    });
+    addXP(40,'section read');
+  },[addXP,data]);
+
+  const markMicroFlipped = useCallback((topicId,idx)=>{
+    const key = `${topicId}:${idx}`;
+    setState(s=>{
+      if((s.microFlipped||[]).includes(key)) return s;
+      let wp = {...(s.weeklyChallenge?.progress||{})};
+      wp.microsFlipped = (wp.microsFlipped||0)+1;
+      return {...s, microFlipped:[...(s.microFlipped||[]),key], weeklyChallenge:{...s.weeklyChallenge, progress:wp}};
+    });
+    addXP(40,'micro flip');
+  },[addXP]);
+
+  const recordQuizAnswer = useCallback((topicId,qIdx,correct)=>{
+    setState(s=>{
+      const key = `${topicId}:${qIdx}`;
+      const newQA = {...(s.quizAnswers||{}), [key]:true};
+      const newTotal = (s.totalAnswered||0)+1;
+      const newCorrect = (s.totalCorrect||0)+(correct?1:0);
+      const newStreak = correct ? (s.correctStreak||0)+1 : 0;
+      const bestStreak = Math.max(s.bestStreak||0, newStreak);
+      let wp = {...(s.weeklyChallenge?.progress||{})};
+      if(correct){
+        wp.correctAnswers = (wp.correctAnswers||0)+1;
+        wp.correctStreak = Math.max(wp.correctStreak||0, newStreak);
+      } else {
+        wp.correctStreak = 0;
+      }
+      // Hot streak: 5+ correct in a row → 1.8x for 10 min
+      let hs = {...(s.hotStreak||{count:0,bonusExpiresAt:null})};
+      if(correct){
+        hs.count = (hs.count||0)+1;
+        if(hs.count>=5 && (!hs.bonusExpiresAt || Date.now()>=hs.bonusExpiresAt)){
+          hs.bonusExpiresAt = Date.now() + 10*60*1000;
+          setTimeout(()=>toast('🔥 Hot Streak! ×1.8 for 10 minutes!','level'),200);
+          playSound('multiplier');
+        }
+      } else {
+        hs.count = 0;
+      }
+      return {...s, quizAnswers:newQA, totalAnswered:newTotal, totalCorrect:newCorrect,
+        correctStreak:newStreak, bestStreak, hotStreak:hs,
+        weeklyChallenge:{...s.weeklyChallenge, progress:wp}};
+    });
+    if(correct){
+      addXP(150,'correct answer');
+      playSound('correct');
+    } else {
+      playSound('wrong');
+    }
+  },[addXP,toast,playSound]);
+
+  // ---- Compute completion stats ----
+  const completionStats = useMemo(()=>{
+    if(!state || !data?.topics) return {completed:0, total:20, completions:{}};
+    const completions = {};
+    let completed = 0;
+    data.topics.forEach(t=>{
+      const c = computeTopicCompletion(t, state);
+      completions[t.id] = c;
+      if(c.isComplete) completed++;
+    });
+    return {completed, total:data.topics.length, completions};
+  },[state?.topicsOpened, state?.sectionsViewed, state?.quizAnswers, state?.microFlipped, data?.topics]);
+
+  const posttestUnlocked = completionStats.completed >= 16;
+
+  // ---- Block Day ----
+  const blockDay = useMemo(()=>{
+    if(!state?.blockStartDate) return 1;
+    const start = new Date(state.blockStartDate);
+    const now = new Date();
+    const diff = Math.floor((now-start)/86400000)+1;
+    return Math.max(1, Math.min(diff, 28));
+  },[state?.blockStartDate]);
+
+  const mult = state ? getMultiplier(state) : 1;
+  const curLevel = state ? getLevel(state.xp) : LEVELS[0];
+  const xpInfo = state ? xpToNext(state.xp) : {pct:0,need:0,total:1};
+
+  const closeSidebar = ()=>setSidebarOpen(false);
+
+  // ---- ONBOARDING ----
+  if(!state){
+    return React.createElement(Onboarding,{onComplete:(name,pgy,skip)=>{
+      const s = freshState(name,pgy);
+      s.onboardingComplete = true;
+      if(skip){
+        s.pretest.skipped = true;
+        s.pretest.completed = true;
+      }
+      setState(s);
+      setView(skip ? 'home' : 'pretest');
+    }});
+  }
+
+  // Pre-test not done yet
+  if(!state.pretest?.completed && !state.pretest?.skipped){
+    if(view !== 'pretest' && view !== 'preresult'){
+      setView('pretest');
+    }
+  }
+
+  // ---- RENDER ----
+  return React.createElement(React.Fragment,null,
+    React.createElement('div',{className:'ambient-orb orb1'}),
+    React.createElement('div',{className:'ambient-orb orb2'}),
+
+    // Mobile top bar
+    React.createElement('div',{className:'mobile-topbar'},
+      React.createElement('button',{className:'hamburger',onClick:()=>setSidebarOpen(!sidebarOpen)},'☰'),
+      React.createElement('span',{style:{fontWeight:700,fontSize:14}},`${TRACKER_EMOJI} ${APP_NAME}`),
+      React.createElement('div',{className:'mobile-stats'},
+        React.createElement('span',null,`Lv${curLevel.lv}`),
+        mult>1 && React.createElement('span',{className:'multiplier-badge'},`×${mult.toFixed(1)}`),
+        React.createElement('span',null,`🪙${state.coins}`),
+        React.createElement('span',{style:{cursor:'pointer'},onClick:()=>setModal('profile')},'👤'),
+      )
+    ),
+
+    // Drawer overlay
+    sidebarOpen && React.createElement('div',{className:'drawer-overlay',onClick:closeSidebar}),
+
+    // ===== SIDEBAR =====
+    React.createElement('div',{className:`sidebar ${sidebarOpen?'open':''}`},
+      // Logo + Title
+      React.createElement('div',{className:'sidebar-logo'},`${TRACKER_EMOJI} ${APP_NAME}`),
+      React.createElement('div',{className:'sidebar-tagline'},TAGLINE),
+      state.userName && React.createElement('div',{className:'sidebar-welcome'},`Welcome, ${state.userName}!`),
+      React.createElement('div',{className:'sidebar-divider'}),
+
+      // Day/Night Toggle
+      React.createElement('button',{className:'theme-toggle',onClick:()=>{
+        setState(s=>({...s, theme:s.theme==='dark'?'light':'dark'}));
+      }},state.theme==='dark' ? '☀️ Day Shift' : '🌙 Night Shift'),
+
+      // XP Progress Bar
+      React.createElement('div',{className:'xp-bar-container'},
+        React.createElement('div',{className:'xp-bar-label'},
+          React.createElement('span',null,`Lv${curLevel.lv} ${curLevel.name}`),
+          React.createElement('span',null,`${state.xp.toLocaleString()} XP`),
+        ),
+        React.createElement('div',{className:'xp-bar-outer'},
+          React.createElement('div',{className:'xp-bar-fill',style:{width:`${xpInfo.pct}%`}}),
+        ),
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginTop:2}},
+          React.createElement('span',{style:{fontSize:10,color:'var(--text2)'}},`${xpInfo.need.toLocaleString()} XP to next`),
+          mult>1 && React.createElement('span',{className:'multiplier-badge'},`×${mult.toFixed(1)} 🔥${state.streak?.count||0}d`),
+        ),
+      ),
+
+      // Block Progress (Day X of 28)
+      React.createElement('div',{className:'block-progress'},
+        React.createElement('div',{style:{fontSize:11,color:'var(--text2)',fontWeight:600}},
+          blockDay > 28 ? 'Block Complete! 🎉' : `Block Day ${blockDay} of 28`
+        ),
+        React.createElement('div',{className:'block-bar-outer'},
+          React.createElement('div',{className:'block-bar-fill',style:{width:`${Math.min(100,blockDay/28*100)}%`}}),
+        ),
+        blockDay <= 28 && React.createElement('div',{className:'block-text'},`${28-blockDay} days left`),
+      ),
+
+      // Stats Row
+      React.createElement('div',{className:'stats-row'},
+        React.createElement('div',{className:'stat-item'},`🪙 ${state.coins}`),
+        React.createElement('div',{className:'stat-item'},`🔥 ${state.streak?.count||0}d`),
+      ),
+
+      React.createElement('div',{className:'sidebar-divider'}),
+
+      // Nav buttons (Shop, Profile, Post-Test — ABOVE topic list per spec)
+      React.createElement('button',{className:'sidebar-btn',onClick:()=>{setModal('shop');closeSidebar();}},'🛒 Reward Shop'),
+      React.createElement('button',{className:'sidebar-btn',onClick:()=>{setModal('profile');closeSidebar();}},'👤 Profile'),
+
+      // Post-Test button
+      React.createElement('button',{
+        className:`sidebar-btn ${posttestUnlocked?'unlocked':'locked'}`,
+        onClick:()=>{
+          if(posttestUnlocked){setView('posttest');closeSidebar();}
+        },
+        title:posttestUnlocked?'Take the Post-Test!':`Complete ${16-completionStats.completed} more topics`
+      }, posttestUnlocked
+        ? '📝 Post-Test (Ready!)'
+        : `🔒 Post-Test (${completionStats.completed}/16 topics)`
+      ),
+
+      React.createElement('div',{className:'sidebar-divider'}),
+
+      // Topic Completion Progress
+      React.createElement('div',{className:'topic-completion'},
+        React.createElement('div',{style:{fontSize:11,color:'var(--text2)',fontWeight:600}},`Topic Mastery: ${completionStats.completed}/${completionStats.total}`),
+        React.createElement('div',{className:'tc-bar-outer'},
+          React.createElement('div',{className:'tc-bar-fill',style:{width:`${completionStats.completed/completionStats.total*100}%`}}),
+        ),
+      ),
+
+      // Weekly Challenge Widget
+      React.createElement('div',{className:'challenge-widget'},
+        React.createElement('div',{className:'challenge-title'},`⚡ ${currentChallenge.name}`),
+        React.createElement('div',{className:'challenge-desc'},currentChallenge.desc),
+        React.createElement('div',{className:'challenge-bar-outer'},
+          React.createElement('div',{className:'challenge-bar-fill',style:{
+            width:`${Math.min(100,(state.weeklyChallenge?.progress?.[currentChallenge.key]||0)/currentChallenge.target*100)}%`
+          }}),
+        ),
+        React.createElement('div',{style:{fontSize:10,color:'var(--text2)',marginTop:2}},
+          `${Math.min(state.weeklyChallenge?.progress?.[currentChallenge.key]||0,currentChallenge.target)}/${currentChallenge.target}`
+        ),
+      ),
+
+      React.createElement('div',{className:'sidebar-divider'}),
+      React.createElement('div',{style:{fontSize:11,fontWeight:700,color:'var(--text2)',marginBottom:4}},'📚 Topics'),
+
+      // Topic list
+      React.createElement('div',{className:'topic-list'},
+        data.topics.map(t=>{
+          const comp = completionStats.completions[t.id];
+          return React.createElement('div',{
+            key:t.id,
+            className:`topic-list-item ${selectedTopic===t.id&&view==='topic'?'active':''}`,
+            onClick:()=>{setSelectedTopic(t.id);setView('topic');closeSidebar();}
+          },
+            React.createElement('span',{className:'topic-check'},comp?.isComplete ? '✅' : '○'),
+            React.createElement('span',{style:{flex:1}},t.title),
+          );
+        })
+      ),
+
+      React.createElement('div',{className:'sidebar-divider'}),
+      React.createElement('div',{className:'sound-toggle',onClick:()=>setState(s=>({...s,soundEnabled:!s.soundEnabled}))},
+        state.soundEnabled?'🔊 Sound On':'🔇 Sound Off'
+      ),
+      React.createElement('button',{className:'home-btn',onClick:()=>{setView('home');setSelectedTopic(null);closeSidebar();}},'🏠 Home'),
+    ),
+
+    // ===== MAIN CONTENT =====
+    React.createElement('div',{className:'main-content'},
+      view==='home' && React.createElement(HomeView,{data,state,setState,setView,setSelectedTopic,completionStats,posttestUnlocked}),
+      view==='topic' && React.createElement(TopicDetail,{
+        topic:data.topics.find(t=>t.id===selectedTopic),
+        state,markTopicViewed,markSectionViewed,markMicroFlipped,
+        recordQuizAnswer,addXP,awardBadge,playSound,
+        onBack:()=>setView('home'),
+      }),
+      view==='pretest' && React.createElement(AssessmentView,{
+        questions:data.pretest.questions, title:'Pre-Test Assessment',
+        type:'pretest', state,
+        onComplete:(score,perTopic,time)=>{
+          setState(s=>({...s, pretest:{...s.pretest, completed:true, score, perTopic,
+            completedAt:new Date().toISOString(),
+            startedAt:s.pretest.startedAt||new Date().toISOString()}}));
+          // NO XP for pre-test per spec
+          setView('preresult');
+        },
+        onStart:()=>setState(s=>({...s, pretest:{...s.pretest, startedAt:new Date().toISOString()}})),
+      }),
+      view==='preresult' && React.createElement(PretestResults,{
+        state, data,
+        onContinue:()=>setView('home'),
+      }),
+      view==='posttest' && React.createElement(AssessmentView,{
+        questions:data.posttest.questions, title:'Post-Test Assessment',
+        type:'posttest', state,
+        onComplete:(score,perTopic,time)=>{
+          setState(s=>({...s, posttest:{...s.posttest, completed:true, score, perTopic,
+            completedAt:new Date().toISOString(),
+            startedAt:s.posttest.startedAt||new Date().toISOString()}}));
+          addXP(500,'post-test completed');
+          addCoins(100,'Post-Test bonus');
+          awardBadge('assessmentComplete');
+          fireConfetti();
+          setView('postresult');
+        },
+        onStart:()=>setState(s=>({...s, posttest:{...s.posttest, startedAt:new Date().toISOString()}})),
+      }),
+      view==='postresult' && React.createElement(PosttestResults,{
+        state, data,
+        onContinue:()=>setView('home'),
+      }),
+      view==='comparison' && React.createElement(ComparisonView,{
+        state, data,
+        onBack:()=>setView('home'),
+      }),
+    ),
+
+    // MODALS
+    modal && React.createElement('div',{className:'modal-overlay',onClick:()=>setModal(null)},
+      React.createElement('div',{className:'modal-content',onClick:e=>e.stopPropagation()},
+        React.createElement('button',{className:'modal-close',onClick:()=>setModal(null)},'✕'),
+        modal==='profile' && React.createElement(ProfileModal,{state,setState,data,setView,setModal,completionStats}),
+        modal==='shop' && React.createElement(ShopModal,{state,setState,toast,playSound}),
+        modal==='badges' && React.createElement(BadgesModal,{state}),
+      )
+    ),
+  );
+}
+
+// ============================================================
+// ONBOARDING
+// ============================================================
+function Onboarding({onComplete}){
+  const [name,setName]=useState('');
+  const [pgy,setPgy]=useState('PGY-2');
+
+  return React.createElement('div',{className:'onboard-container'},
+    React.createElement('div',{className:'ambient-orb orb1'}),
+    React.createElement('div',{className:'ambient-orb orb2'}),
+    React.createElement('div',{className:'onboard-card fade-in-up'},
+      React.createElement('div',{className:'onboard-logo'},TRACKER_EMOJI),
+      React.createElement('div',{className:'onboard-title'},APP_NAME),
+      React.createElement('div',{className:'onboard-tagline'},TAGLINE),
+      React.createElement('p',{style:{fontSize:13,color:'var(--text3)',marginBottom:20}},
+        "Welcome! Let's see where you're starting from."
+      ),
+      React.createElement('div',{className:'onboard-field'},
+        React.createElement('div',{className:'onboard-label'},'First Name'),
+        React.createElement('input',{className:'onboard-input',value:name,onChange:e=>setName(e.target.value.slice(0,30)),placeholder:'Your first name',maxLength:30}),
+      ),
+      React.createElement('div',{className:'onboard-field'},
+        React.createElement('div',{className:'onboard-label'},'PGY Level'),
+        React.createElement('select',{className:'onboard-select',value:pgy,onChange:e=>setPgy(e.target.value)},
+          PGY_OPTIONS.map(p=>React.createElement('option',{key:p,value:p},p))
+        ),
+      ),
+      React.createElement('button',{
+        className:'onboard-submit',
+        disabled:!name.trim(),
+        onClick:()=>onComplete(name.trim(),pgy,false),
+      },'Begin Pre-Test →'),
+      React.createElement('button',{
+        className:'onboard-skip',
+        onClick:()=>onComplete(name.trim()||'Learner',pgy,true),
+      },'Skip Pre-Test →'),
+      React.createElement('div',{style:{marginTop:8,fontSize:10,color:'var(--text2)'}},
+        'The pre-test helps measure your growth. You can always take it later.'
+      ),
+    ),
+  );
+}
+
+// ============================================================
+// HOME VIEW
+// ============================================================
+function HomeView({data,state,setState,setView,setSelectedTopic,completionStats,posttestUnlocked}){
+  const [pretestExpanded,setPretestExpanded]=useState(false);
+
+  return React.createElement(React.Fragment,null,
+    React.createElement('div',{className:'home-header fade-in-up'},
+      React.createElement('h1',{className:'home-title'},`${TRACKER_EMOJI} ${APP_NAME}`),
+      React.createElement('div',{className:'home-subtitle'},
+        `${completionStats.completed}/${completionStats.total} topics complete · ${state.totalCorrect||0}/${state.totalAnswered||0} questions correct`
+      ),
+    ),
+
+    // Post-Test card (always at top)
+    React.createElement('div',{className:`posttest-card fade-in-up ${posttestUnlocked?'unlocked':'locked'}`},
+      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        React.createElement('div',null,
+          React.createElement('div',{style:{fontSize:15,fontWeight:700}},
+            posttestUnlocked ? '✅ Post-Test Unlocked' : '🔒 Post-Test'
+          ),
+          React.createElement('div',{style:{fontSize:12,color:'var(--text2)',marginTop:2}},
+            posttestUnlocked
+              ? 'Ready to measure your growth!'
+              : `Complete ${16-completionStats.completed} more topic${16-completionStats.completed===1?'':'s'} to unlock`
+          ),
+        ),
+        posttestUnlocked && React.createElement('button',{
+          className:'quiz-submit',
+          onClick:()=>setView(state.posttest?.completed?'postresult':'posttest'),
+        },state.posttest?.completed?'View Results':'Start →'),
+      ),
+      !posttestUnlocked && React.createElement('div',{style:{marginTop:8}},
+        React.createElement('div',{className:'tc-bar-outer'},
+          React.createElement('div',{className:'tc-bar-fill',style:{width:`${completionStats.completed/16*100}%`}}),
+        ),
+        React.createElement('div',{style:{fontSize:10,color:'var(--text2)',marginTop:2}},
+          `${completionStats.completed}/16 topics complete`
+        ),
+      ),
+      state.posttest?.completed && React.createElement('div',{style:{marginTop:8,fontSize:13,color:'var(--text3)'}},
+        `Last score: ${state.posttest.score}/20 (${Math.round(state.posttest.score/20*100)}%)`
+      ),
+    ),
+
+    // Pre-Test results summary (collapsible)
+    state.pretest?.completed && !state.pretest?.skipped && React.createElement('div',{
+      className:'pretest-summary fade-in-up',
+      onClick:()=>setPretestExpanded(!pretestExpanded)
+    },
+      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        React.createElement('span',null,`📋 Pre-Test Baseline: ${state.pretest.score}/20 (${Math.round(state.pretest.score/20*100)}%)`),
+        React.createElement('span',{className:`collapse-icon ${pretestExpanded?'open':''}`},'▶'),
+      ),
+      pretestExpanded && React.createElement('div',{style:{marginTop:10,fontSize:12}},
+        Object.entries(state.pretest.perTopic||{}).map(([slug,info])=>{
+          const topic = data.topics.find(t=>t.id===slug);
+          return React.createElement('div',{key:slug,style:{display:'flex',justifyContent:'space-between',padding:'2px 0',borderBottom:'1px solid var(--border1)'}},
+            React.createElement('span',null,topic?.title||slug),
+            React.createElement('span',null,info.correct?'✅':'❌'),
+          );
+        })
+      ),
+    ),
+    state.pretest?.skipped && React.createElement('div',{className:'pretest-summary fade-in-up',style:{opacity:0.6}},
+      '📋 Pre-Test: Skipped'
+    ),
+
+    // Topic grid
+    React.createElement('div',{style:{fontSize:16,fontWeight:700,marginBottom:12,marginTop:16}},'📚 Topics'),
+    React.createElement('div',{className:'topic-grid'},
+      data.topics.map((t,i)=>{
+        const comp = completionStats.completions[t.id];
+        const color = getTopicColor(t,i);
+        return React.createElement('div',{
+          key:t.id,
+          className:'topic-card fade-in-up',
+          style:{animationDelay:`${i*0.04}s`,opacity:0,borderLeftColor:color},
+          onClick:()=>{setSelectedTopic(t.id);setView('topic');}
+        },
+          React.createElement('div',{className:'topic-card-check'},comp?.isComplete?'✅':'⬜'),
+          React.createElement('div',{className:'topic-card-title'},t.title),
+          React.createElement('div',{className:'topic-card-tags'},
+            (t.tags||[]).slice(0,3).map((tag,j)=>
+              React.createElement('span',{key:j,className:'tag-pill'},tag)
+            )
+          ),
+          React.createElement('div',{className:'topic-card-meta'},
+            React.createElement('span',null,`${(t.micro_questions||[]).length} micro Q's`),
+            React.createElement('span',null,`${(t.quizzes||[]).length} ABIM Q's`),
+            React.createElement('span',null,`${Object.keys(t.sections||{}).length} sections`),
+          ),
+        );
+      })
+    ),
+  );
+}
+
+// ============================================================
+// TOPIC DETAIL
+// ============================================================
+function TopicDetail({topic,state,markTopicViewed,markSectionViewed,markMicroFlipped,recordQuizAnswer,addXP,awardBadge,playSound,onBack}){
+  const [flippedMicros,setFlippedMicros]=useState({});
+  const [quizAnswers,setQuizAnswers]=useState({});
+  const [quizSubmitted,setQuizSubmitted]=useState({});
+  const [quizStartTime]=useState(Date.now());
+  const sectionRefs=useRef({});
+
+  useEffect(()=>{
+    if(topic) markTopicViewed(topic.id);
+  },[topic?.id]);
+
+  // Intersection observer for section-view XP
+  useEffect(()=>{
+    if(!topic) return;
+    const observer = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          const sKey = e.target.dataset.sectionKey;
+          if(sKey) markSectionViewed(topic.id,sKey);
+        }
+      });
+    },{threshold:0.3});
+    Object.values(sectionRefs.current).forEach(el=>{if(el)observer.observe(el);});
+    return ()=>observer.disconnect();
+  },[topic?.id]);
+
+  if(!topic) return React.createElement('div',null,'Topic not found');
+
+  const handleQuizSubmit=(qIdx)=>{
+    if(quizSubmitted[qIdx]) return;
+    const selected = quizAnswers[qIdx];
+    if(!selected) return;
+    const correct = selected === topic.quizzes[qIdx].correct;
+    recordQuizAnswer(topic.id, qIdx, correct);
+    setQuizSubmitted(s=>({...s,[qIdx]:true}));
+    // Check perfect quiz
+    const allSubmitted = {...quizSubmitted,[qIdx]:true};
+    const totalQ = topic.quizzes.length;
+    if(Object.keys(allSubmitted).length === totalQ){
+      let allCorrect = true;
+      for(let i=0;i<totalQ;i++){
+        const ans = i===qIdx ? selected : quizAnswers[i];
+        if(ans !== topic.quizzes[i].correct) allCorrect = false;
+      }
+      if(allCorrect){
+        awardBadge('perfectQuiz');
+        let wp = state.weeklyChallenge?.progress||{};
+        // perfectQuizzes for weekly
+      }
+      // Speed badge
+      const elapsed = (Date.now()-quizStartTime)/1000;
+      if(elapsed < 240) awardBadge('speed4min');
+    }
+  };
+
+  return React.createElement(React.Fragment,null,
+    React.createElement('button',{className:'detail-back',onClick:onBack},'← Back to Topics'),
+    React.createElement('h2',{className:'detail-title fade-in-up'},topic.title),
+
+    // Sections
+    SECTION_ORDER.map(sKey=>{
+      const bullets = topic.sections?.[sKey];
+      if(!bullets || !bullets.length) return null;
+      const viewedKey = `${topic.id}:${sKey}`;
+      const isViewed = (state.sectionsViewed||{})[viewedKey];
+      return React.createElement('div',{
+        key:sKey,
+        className:`section-card ${SECTION_CLASSES[sKey]||''} fade-in-up`,
+        ref:el=>{sectionRefs.current[sKey]=el;},
+        'data-section-key':sKey,
+      },
+        React.createElement('div',{className:'section-header'},
+          React.createElement('span',null,SECTION_NAMES[sKey]||sKey),
+          isViewed && React.createElement('span',{className:'section-viewed-icon'},'👁️ read'),
+        ),
+        React.createElement('ul',{className:'bullet-list'},
+          bullets.map((b,i)=>
+            React.createElement('li',{key:i},
+              hasGuideline(b) && React.createElement('span',{className:'guideline-tag'},'GUIDELINE '),
+              React.createElement(RenderText,{text:b}),
+            )
+          )
+        ),
+      );
+    }),
+
+    // References
+    topic.references && topic.references.length>0 && React.createElement('div',{className:'section-card refs fade-in-up'},
+      React.createElement('div',{className:'section-header'},'📖 References'),
+      topic.references.map((r,i)=>
+        r.url
+          ?React.createElement('a',{key:i,className:'ref-link',href:r.url,target:'_blank',rel:'noopener'},r.label||r.url)
+          :React.createElement('div',{key:i,style:{fontSize:12,color:'var(--text2)',padding:'4px 0'}},r.label)
+      )
+    ),
+
+    // Quizzes
+    topic.quizzes && topic.quizzes.length>0 && React.createElement(React.Fragment,null,
+      React.createElement('div',{style:{fontSize:16,fontWeight:700,marginTop:20,marginBottom:10}},'🎯 ABIM-Style Questions'),
+      topic.quizzes.map((q,qIdx)=>{
+        const submitted = quizSubmitted[qIdx];
+        const selected = quizAnswers[qIdx];
+        return React.createElement('div',{key:qIdx,className:'quiz-card fade-in-up'},
+          React.createElement('div',{className:'quiz-stem'},React.createElement(RenderText,{text:q.stem})),
+          React.createElement('div',{className:'quiz-options'},
+            q.options.map((opt,oIdx)=>{
+              const letter = opt[0];
+              let cls = 'quiz-option';
+              if(submitted){
+                if(letter===q.correct) cls+=' correct';
+                else if(letter===selected) cls+=' wrong';
+                else cls+=' dimmed';
+                cls+=' disabled';
+              } else if(letter===selected){
+                cls+=' selected';
+              }
+              return React.createElement('div',{
+                key:oIdx,className:cls,
+                onClick:()=>{if(!submitted) setQuizAnswers(s=>({...s,[qIdx]:letter}));}
+              },React.createElement(RenderText,{text:opt}));
+            })
+          ),
+          !submitted && React.createElement('button',{
+            className:'quiz-submit',
+            onClick:()=>handleQuizSubmit(qIdx),
+            disabled:!selected,
+          },'Submit Answer'),
+          submitted && React.createElement('div',{className:'quiz-rationale'},
+            React.createElement('strong',null,selected===q.correct?'✅ Correct! ':'❌ Incorrect. '),
+            React.createElement(RenderText,{text:q.rationale}),
+          ),
+        );
+      })
+    ),
+
+    // Micro Questions
+    topic.micro_questions && topic.micro_questions.length>0 && React.createElement(React.Fragment,null,
+      React.createElement('div',{style:{fontSize:16,fontWeight:700,marginTop:20,marginBottom:10}},'💡 Quick-Fire Micro Questions'),
+      React.createElement('div',{style:{fontSize:11,color:'var(--text2)',marginBottom:8}},'Tap to flip and reveal the answer'),
+      topic.micro_questions.map((m,i)=>{
+        const flipped = flippedMicros[i];
+        return React.createElement('div',{
+          key:i,className:'micro-card',
+          onClick:()=>{
+            if(!flipped){
+              setFlippedMicros(s=>({...s,[i]:true}));
+              markMicroFlipped(topic.id,i);
+            }
+          }
+        },
+          React.createElement('div',{className:'micro-q'},React.createElement(RenderText,{text:m.q})),
+          flipped
+            ?React.createElement('div',{className:'micro-a'},React.createElement(RenderText,{text:m.a}))
+            :React.createElement('div',{className:'micro-flip-hint'},'tap to reveal →'),
+        );
+      })
+    ),
+  );
+}
+
+// ============================================================
+// ASSESSMENT VIEW (Pre/Post-Test — BLIND, no feedback per spec)
+// ============================================================
+function AssessmentView({questions,title,type,state,onComplete,onStart}){
+  const [current,setCurrent]=useState(0);
+  const [answers,setAnswers]=useState({});
+  const [startTime]=useState(()=>{if(onStart)onStart(); return Date.now();});
+  const [elapsed,setElapsed]=useState(0);
+  useEffect(()=>{
+    const timer=setInterval(()=>setElapsed(Math.floor((Date.now()-startTime)/1000)),1000);
+    return()=>clearInterval(timer);
+  },[startTime]);
+  const q=questions[current];
+  const selected=answers[current];
+  const progress=((current+1)/questions.length)*100;
+  const isLast=current===questions.length-1;
+  const handleNext=()=>{if(!selected)return;if(current<questions.length-1)setCurrent(current+1);};
+  const handleFinish=()=>{
+    if(!selected)return;
+    const finalElapsed=Math.round((Date.now()-startTime)/1000);
+    let score=0;const perTopic={};
+    questions.forEach((q,i)=>{
+      const ans=answers[i];const correct=ans===q.correct;
+      if(correct)score++;
+      perTopic[q.topicSlug]={correct,userAnswer:ans,correctAnswer:q.correct,topicTitle:q.topicTitle};
+    });
+    onComplete(score,perTopic,finalElapsed);
+  };
+  return React.createElement('div',{className:'assess-container'},
+    React.createElement('div',{className:'assess-progress'},
+      React.createElement('div',{className:'assess-progress-fill',style:{width:`${progress}%`}})),
+    React.createElement('div',{className:'assess-header'},
+      React.createElement('span',null,`${title} — Question ${current+1}/${questions.length}`),
+      React.createElement('span',{className:'assess-timer'},formatTime(elapsed))),
+    React.createElement('div',{className:'quiz-card fade-in-up',key:current},
+      React.createElement('div',{style:{fontSize:11,color:'var(--text2)',marginBottom:8}},q.topicTitle),
+      React.createElement('div',{className:'quiz-stem'},q.stem),
+      React.createElement('div',{className:'quiz-options'},
+        q.options.map((opt,i)=>{
+          const letter=opt[0];
+          let cls='quiz-option';if(letter===selected)cls+=' selected';
+          return React.createElement('div',{key:i,className:cls,onClick:()=>setAnswers(s=>({...s,[current]:letter}))},opt);
+        })),
+      React.createElement('div',{style:{marginTop:12,textAlign:'right'}},
+        !isLast
+          ?React.createElement('button',{className:'assess-next',onClick:handleNext,disabled:!selected},'Next →')
+          :React.createElement('button',{className:'assess-next',onClick:handleFinish,disabled:!selected},'Finish 🎉')
+      )));
+}
+
+// ============================================================
+// PRE-TEST RESULTS
+// ============================================================
+function PretestResults({state,data,onContinue}){
+  const pre=state.pretest;if(!pre?.completed)return null;
+  const pct=Math.round(pre.score/20*100);
+  const pgy=state.pgyLevel||'PGY-2';
+  let msg;
+  if(pgy.includes('1')||pgy.includes('2'))msg="Great baseline! This rotation will build on what you know.";
+  else if(pgy.includes('Fellow')||pgy.includes('Attending'))msg="Let's see how the deep dive changes things.";
+  else msg="Solid foundation. Let's sharpen the edges.";
+  return React.createElement('div',{className:'results-container'},
+    React.createElement('div',{className:'results-score fade-in-up',style:{color:pct>=70?'#10b981':pct>=50?'#f59e0b':'#ef4444'}},`${pre.score}/20`),
+    React.createElement('div',{className:'results-time'},`${pct}%`),
+    React.createElement('div',{className:'results-msg fade-in-up'},msg),
+    React.createElement('table',{className:'results-table'},
+      React.createElement('thead',null,React.createElement('tr',null,
+        React.createElement('th',null,'#'),React.createElement('th',null,'Topic'),React.createElement('th',null,'Result'))),
+      React.createElement('tbody',null,
+        Object.entries(pre.perTopic||{}).map(([slug,info],i)=>
+          React.createElement('tr',{key:slug},
+            React.createElement('td',null,i+1),
+            React.createElement('td',null,info.topicTitle||slug),
+            React.createElement('td',null,info.correct?'✅':'❌'))))),
+    React.createElement('button',{className:'results-enter fade-in-up',onClick:onContinue},`Enter ${APP_NAME} →`));
+}
+
+// ============================================================
+// POST-TEST RESULTS
+// ============================================================
+function PosttestResults({state,data,onContinue}){
+  const post=state.posttest;const pre=state.pretest;
+  if(!post?.completed)return null;
+  const showComparison=pre?.completed&&!pre?.skipped;
+  if(showComparison)return React.createElement(ComparisonView,{state,data,onBack:onContinue});
+  const postPct=Math.round(post.score/20*100);
+  const msg=postPct>=90?'Outstanding! 🏆':postPct>=70?'Solid work! 💪':postPct>=50?'Good effort!':'Keep studying! 📚';
+  return React.createElement('div',{className:'results-container'},
+    React.createElement('div',{className:'results-score fade-in-up',style:{color:postPct>=70?'#10b981':postPct>=50?'#f59e0b':'#ef4444'}},`${post.score}/20`),
+    React.createElement('div',{className:'results-time'},`${postPct}%`),
+    React.createElement('div',{className:'results-msg fade-in-up'},msg),
+    React.createElement('button',{className:'results-enter fade-in-up',onClick:onContinue},'Back to Dashboard'));
+}
+
+// ============================================================
+// COMPARISON VIEW (Pre vs Post — full spec)
+// ============================================================
+function ComparisonView({state,data,onBack}){
+  const pre=state.pretest;const post=state.posttest;
+  if(!pre?.completed||!post?.completed)return null;
+  const improvement=post.score-pre.score;
+  const prePct=Math.round(pre.score/20*100);
+  const postPct=Math.round(post.score/20*100);
+  let growthMsg;
+  if(improvement>=9)growthMsg="Outstanding! You've transformed your knowledge base. 🌟";
+  else if(improvement>=6)growthMsg="Impressive growth. You've clearly mastered new material. 🎯";
+  else if(improvement>=3)growthMsg="Nice improvement! Your rotation work is paying off. 💪";
+  else if(improvement>=0)growthMsg="Steady performance. Consider reviewing the flagged topics.";
+  else growthMsg="Score decreased. Focus on the topics below for targeted review.";
+
+  const topicRows=[];const focusAreas=[];
+  const allSlugs=[...new Set([...Object.keys(pre.perTopic||{}),...Object.keys(post.perTopic||{})])];
+  allSlugs.forEach(slug=>{
+    const preInfo=pre.perTopic?.[slug];const postInfo=post.perTopic?.[slug];
+    const preCor=preInfo?.correct;const postCor=postInfo?.correct;
+    let change,rowClass;
+    if(!preCor&&postCor){change='📈 Improved';rowClass='improved';}
+    else if(preCor&&postCor){change='✅ Maintained';rowClass='maintained';}
+    else if(!preCor&&!postCor){change='⚠️ Review Needed';rowClass='gap';focusAreas.push(slug);}
+    else{change='📉 Regressed';rowClass='regressed';}
+    const title=preInfo?.topicTitle||postInfo?.topicTitle||slug;
+    topicRows.push({slug,title,preCor,postCor,change,rowClass});
+  });
+
+  return React.createElement('div',{className:'results-container'},
+    React.createElement('h2',{className:'detail-title fade-in-up',style:{textAlign:'center',marginBottom:24}},'Pre-Test vs Post-Test Comparison'),
+
+    // Section 1: Score Comparison
+    React.createElement('div',{className:'comparison-scores fade-in-up'},
+      React.createElement('div',{className:'comp-score-box'},
+        React.createElement('div',{className:'label'},'Pre-Test'),
+        React.createElement('div',{className:'score',style:{color:'var(--text2)'}},`${pre.score}/20`),
+        React.createElement('div',{style:{fontSize:11,color:'var(--text2)'}},`${prePct}%`)),
+      React.createElement('div',{className:'comp-arrow'},'→'),
+      React.createElement('div',{className:'comp-score-box'},
+        React.createElement('div',{className:'label'},'Post-Test'),
+        React.createElement('div',{className:'score',style:{color:'#10b981'}},`${post.score}/20`),
+        React.createElement('div',{style:{fontSize:11,color:'var(--text2)'}},`${postPct}%`))),
+
+    React.createElement('div',{className:`comp-improvement fade-in-up ${improvement>0?'up':improvement<0?'down':'same'}`},
+      improvement>0?`📈 +${improvement} questions improved!`:
+      improvement===0?'📊 Same score — consistency is good':
+      `📉 ${improvement} — review the topics below`),
+
+    // Section 2: Bar Chart
+    React.createElement('div',{className:'comp-bar-chart fade-in-up'},
+      React.createElement('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:4}},
+        React.createElement('div',{className:'comp-bar',style:{height:`${Math.max(20,prePct)}%`,background:'linear-gradient(180deg,var(--text2),rgba(148,163,184,0.3))'}},
+          React.createElement('div',{className:'comp-bar-value',style:{color:'var(--text2)'}},`${prePct}%`)),
+        React.createElement('div',{className:'comp-bar-label'},'Pre-Test')),
+      React.createElement('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:4}},
+        React.createElement('div',{className:'comp-bar',style:{height:`${Math.max(20,postPct)}%`,background:'linear-gradient(180deg,#10b981,rgba(16,185,129,0.3))'}},
+          React.createElement('div',{className:'comp-bar-value',style:{color:'#10b981'}},`${postPct}%`)),
+        React.createElement('div',{className:'comp-bar-label'},'Post-Test'))),
+
+    // Section 3: Per-Topic Table
+    React.createElement('div',{style:{fontSize:14,fontWeight:700,marginTop:20,marginBottom:8}},'Per-Topic Performance'),
+    React.createElement('table',{className:'results-table'},
+      React.createElement('thead',null,React.createElement('tr',null,
+        React.createElement('th',null,'Topic'),
+        React.createElement('th',null,'Pre'),
+        React.createElement('th',null,'Post'),
+        React.createElement('th',null,'Change'))),
+      React.createElement('tbody',null,
+        topicRows.map(r=>React.createElement('tr',{key:r.slug,className:r.rowClass},
+          React.createElement('td',null,r.title),
+          React.createElement('td',null,r.preCor?'✅':'❌'),
+          React.createElement('td',null,r.postCor?'✅':'❌'),
+          React.createElement('td',null,r.change))))),
+
+    // Section 4: Growth Summary
+    React.createElement('div',{className:'growth-summary fade-in-up'},
+      React.createElement('div',{style:{fontSize:15,fontWeight:700,marginBottom:4}},'📊 Growth Summary'),
+      React.createElement('div',{style:{fontSize:14,color:'var(--text3)'}},growthMsg)),
+
+    // Section 5: Focus Areas
+    focusAreas.length>0&&React.createElement('div',{className:'focus-areas fade-in-up'},
+      React.createElement('div',{className:'focus-areas-title'},'📌 Persistent Knowledge Gaps'),
+      React.createElement('div',{style:{fontSize:12,color:'var(--text3)',marginBottom:6}},'These topics were wrong on both tests. Consider revisiting the modules.'),
+      focusAreas.map(slug=>{
+        const info=pre.perTopic?.[slug]||post.perTopic?.[slug];
+        return React.createElement('div',{key:slug,style:{fontSize:13,color:'var(--text3)',padding:'3px 0'}},`• ${info?.topicTitle||slug}`);
+      })),
+
+    React.createElement('button',{className:'results-enter fade-in-up',onClick:onBack},'Back to Dashboard'));
+}
+
+// ============================================================
+// PROFILE MODAL (full spec)
+// ============================================================
+function ProfileModal({state,setState,data,setView,setModal,completionStats}){
+  const [editName,setEditName]=useState(state.userName||'');
+  const [editPgy,setEditPgy]=useState(state.pgyLevel||'PGY-2');
+  const [resetConfirm,setResetConfirm]=useState('');
+  const [retakeWarn,setRetakeWarn]=useState(false);
+  const [showExport,setShowExport]=useState(false);
+  const importRef=useRef(null);
+
+  const saveName=()=>setState(s=>({...s,userName:editName.trim()||s.userName}));
+  const savePgy=()=>setState(s=>({...s,pgyLevel:editPgy}));
+
+  const exportData=()=>{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`${STORAGE_KEY}-backup.json`;
+    a.click();URL.revokeObjectURL(url);
+  };
+
+  const importData=(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      try{
+        const imported=JSON.parse(ev.target.result);
+        setState(imported);
+        alert('Data imported successfully!');
+      }catch(err){alert('Invalid JSON file');}
+    };
+    reader.readAsText(file);
+  };
+
+  const doReset=()=>{
+    if(resetConfirm==='RESET'){
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.reload();
+    }
+  };
+
+  const retakePretest=()=>{
+    setState(s=>({...s,pretest:{completed:false,skipped:false,startedAt:null,completedAt:null,answers:{},score:0,totalQuestions:20,perTopic:{}}}));
+    setModal(null);
+    setView('pretest');
+  };
+
+  const resetBlock=()=>{
+    setState(s=>({...s,blockStartDate:new Date().toISOString().slice(0,10)}));
+  };
+
+  const accuracy=(state.totalAnswered||0)>0?Math.round((state.totalCorrect||0)/(state.totalAnswered||0)*100):0;
+  const totalMicros=data.topics.reduce((a,t)=>a+(t.micro_questions||[]).length,0);
+
+  return React.createElement(React.Fragment,null,
+    React.createElement('h2',{className:'modal-title'},'👤 Profile'),
+
+    // Identity
+    React.createElement('div',{className:'modal-section'},
+      React.createElement('div',{className:'modal-section-title'},'Identity'),
+      React.createElement('div',{className:'modal-field'},
+        React.createElement('label',null,'First Name'),
+        React.createElement('input',{value:editName,onChange:e=>setEditName(e.target.value),onBlur:saveName,maxLength:30})),
+      React.createElement('div',{className:'modal-field'},
+        React.createElement('label',null,'PGY Level'),
+        React.createElement('select',{value:editPgy,onChange:e=>{setEditPgy(e.target.value);setState(s=>({...s,pgyLevel:e.target.value}));}},
+          PGY_OPTIONS.map(p=>React.createElement('option',{key:p,value:p},p))))),
+
+    // Assessment Section
+    React.createElement('div',{className:'modal-section'},
+      React.createElement('div',{className:'modal-section-title'},'Assessments'),
+      React.createElement('div',{style:{fontSize:13,color:'var(--text3)',marginBottom:6}},
+        state.pretest?.completed && !state.pretest?.skipped
+          ?`Pre-Test: ${state.pretest.score}/20 (${Math.round(state.pretest.score/20*100)}%)`
+          :(state.pretest?.skipped?'Pre-Test: Skipped':'Pre-Test: Not taken')),
+      React.createElement('div',{style:{fontSize:13,color:'var(--text3)',marginBottom:8}},
+        state.posttest?.completed
+          ?`Post-Test: ${state.posttest.score}/20 (${Math.round(state.posttest.score/20*100)}%)`
+          :'Post-Test: Not yet taken'),
+      React.createElement('div',{style:{display:'flex',gap:8,flexWrap:'wrap'}},
+        state.pretest?.completed&&state.posttest?.completed&&React.createElement('button',{
+          className:'modal-btn primary',
+          onClick:()=>{setModal(null);setView('comparison');}
+        },'View Comparison'),
+        React.createElement('button',{className:'modal-btn',onClick:()=>setRetakeWarn(!retakeWarn)},'Retake Pre-Test')),
+      retakeWarn&&React.createElement('div',{className:'confirm-box'},
+        React.createElement('div',{style:{fontSize:12,color:'#ef4444'}},'⚠️ This will erase your current pre-test baseline. Your app progress and post-test results will not be affected.'),
+        React.createElement('div',{style:{display:'flex',gap:8,marginTop:8}},
+          React.createElement('button',{className:'modal-btn danger',onClick:retakePretest},'Confirm Retake'),
+          React.createElement('button',{className:'modal-btn',onClick:()=>setRetakeWarn(false)},'Cancel')))),
+
+    // Block Progress
+    React.createElement('div',{className:'modal-section'},
+      React.createElement('div',{className:'modal-section-title'},'Block Progress'),
+      React.createElement('div',{style:{fontSize:13,color:'var(--text3)',marginBottom:6}},
+        `Block started: ${state.blockStartDate||'N/A'}`),
+      React.createElement('button',{className:'modal-btn',onClick:resetBlock},'Reset Block Start Date')),
+
+    // Stats
+    React.createElement('div',{className:'modal-section'},
+      React.createElement('div',{className:'modal-section-title'},'Statistics'),
+      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+        statBox('Level',`${getLevel(state.xp).lv} — ${getLevel(state.xp).name}`),
+        statBox('Total XP',state.xp.toLocaleString()),
+        statBox('Coins',`🪙 ${state.coins}`),
+        statBox('Streak',`🔥 ${state.streak?.count||0} days`),
+        statBox('Best Streak',`${state.bestStreak||0} correct`),
+        statBox('Topics Opened',`${(state.topicsOpened||[]).length}/20`),
+        statBox('Topics Complete',`${completionStats.completed}/${completionStats.total}`),
+        statBox('Questions',`${state.totalCorrect||0}/${state.totalAnswered||0} (${accuracy}%)`),
+        statBox('Micro-Questions',`${(state.microFlipped||[]).length}/${totalMicros}`),
+        statBox('Badges',`${(state.badges||[]).length}/${BADGE_DEFS.length}`),
+        statBox('Days Logged',`${(state.daysLogged||[]).length}`),
+        statBox('Shop Items',`${(state.shop?.purchased||[]).length}`))),
+
+    // Badges mini-display
+    React.createElement('div',{className:'modal-section'},
+      React.createElement('div',{className:'modal-section-title'},`Badges (${(state.badges||[]).length}/${BADGE_DEFS.length})`),
+      React.createElement('div',{className:'badge-grid'},
+        BADGE_DEFS.map(b=>{
+          const unlocked=(state.badges||[]).includes(b.id);
+          return React.createElement('div',{key:b.id,className:`badge-item ${unlocked?'':'locked'}`},
+            React.createElement('div',{className:'badge-emoji'},b.emoji),
+            React.createElement('div',{className:'badge-name'},unlocked?b.name:(b.type==='secret'?'???':b.name)));
+        }))),
+
+    // Export/Import/Reset
+    React.createElement('div',{className:'modal-section'},
+      React.createElement('div',{className:'modal-section-title'},'Data Management'),
+      React.createElement('div',{style:{display:'flex',gap:8,flexWrap:'wrap',marginBottom:8}},
+        React.createElement('button',{className:'modal-btn',onClick:exportData},'📥 Export Data'),
+        React.createElement('button',{className:'modal-btn',onClick:()=>importRef.current?.click()},'📤 Import Data'),
+        React.createElement('input',{ref:importRef,type:'file',accept:'.json',style:{display:'none'},onChange:importData})),
+      React.createElement('div',{style:{marginTop:8}},
+        React.createElement('div',{style:{fontSize:12,color:'var(--text2)',marginBottom:4}},'Type RESET to erase all data:'),
+        React.createElement('div',{style:{display:'flex',gap:8}},
+          React.createElement('input',{value:resetConfirm,onChange:e=>setResetConfirm(e.target.value),placeholder:'Type RESET',style:{
+            flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid var(--border1)',
+            background:'var(--card-bg2)',color:'var(--text1)',fontSize:12,fontFamily:'DM Sans,sans-serif'}}),
+          React.createElement('button',{className:'modal-btn danger',onClick:doReset,disabled:resetConfirm!=='RESET'},'Reset All')))));
+}
+
+function statBox(label,value){
+  return React.createElement('div',{style:{
+    padding:'8px 10px',borderRadius:8,background:'var(--card-bg)',border:'1px solid var(--border1)',
+  }},
+    React.createElement('div',{style:{fontSize:10,color:'var(--text2)',marginBottom:2}},label),
+    React.createElement('div',{style:{fontSize:13,fontWeight:700}},value));
+}
+
+// ============================================================
+// BADGES MODAL
+// ============================================================
+function BadgesModal({state}){
+  const categories={
+    'Topic Mastery':BADGE_DEFS.filter(b=>b.type==='topic'),
+    'Streak & Consistency':BADGE_DEFS.filter(b=>b.type==='streak'),
+    'Skill & Performance':BADGE_DEFS.filter(b=>b.type==='skill'),
+    'Secret':BADGE_DEFS.filter(b=>b.type==='secret'),
+    'Assessment':BADGE_DEFS.filter(b=>b.type==='assessment'),
+  };
+  return React.createElement(React.Fragment,null,
+    React.createElement('h2',{className:'modal-title'},'🏅 Badges & Achievements'),
+    React.createElement('div',{style:{fontSize:13,color:'var(--text2)',marginBottom:16}},
+      `${(state.badges||[]).length}/${BADGE_DEFS.length} unlocked`),
+    Object.entries(categories).map(([cat,badges])=>
+      React.createElement('div',{key:cat,className:'modal-section'},
+        React.createElement('div',{className:'modal-section-title'},cat),
+        React.createElement('div',{className:'badge-grid'},
+          badges.map(b=>{
+            const unlocked=(state.badges||[]).includes(b.id);
+            return React.createElement('div',{key:b.id,className:`badge-item ${unlocked?'':'locked'}`},
+              React.createElement('div',{className:'badge-emoji'},b.emoji),
+              React.createElement('div',{className:'badge-name'},unlocked?b.name:(b.type==='secret'?'???':b.name)));
+          })))));
+}
+
+// ============================================================
+// SHOP MODAL
+// ============================================================
+function ShopModal({state,setState,toast,playSound}){
+  const [tab,setTab]=useState('avatars');
+  const categories={avatars:'🔬 Avatars',memes:'😂 Memes',certs:'🎖️ Certificates',boosts:'⚡ Boosts'};
+  const items=SHOP_ITEMS[tab]||[];
+  const purchased=state.shop?.purchased||[];
+
+  const buy=(item)=>{
+    if(purchased.includes(item.id))return;
+    if(state.coins<item.price){toast('Not enough coins! 🪙','coin');return;}
+    setState(s=>{
+      const newPurchased=[...(s.shop?.purchased||[]),item.id];
+      let newShop={...s.shop,purchased:newPurchased};
+      // Equip avatar immediately
+      if(item.id.startsWith('avatar-'))newShop.equipped={...newShop.equipped,avatar:item.emoji};
+      // 24h boost
+      if(item.id==='boost-24h')return{...s,coins:s.coins-item.price,shop:newShop,boostExpiry:Date.now()+24*60*60*1000};
+      return{...s,coins:s.coins-item.price,shop:newShop};
+    });
+    toast(`Purchased ${item.name}!`,'coin');
+    playSound('coin');
+  };
+
+  return React.createElement(React.Fragment,null,
+    React.createElement('h2',{className:'modal-title'},'🛒 Reward Shop'),
+    getLevel(state.xp).lv<3&&React.createElement('div',{style:{fontSize:13,color:'#f59e0b',marginBottom:12,padding:'8px 12px',borderRadius:8,background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.2)'}},
+      `🔒 Shop unlocks at Level 3! (Currently Level ${getLevel(state.xp).lv})`),
+    React.createElement('div',{style:{fontSize:13,color:'var(--text2)',marginBottom:12}},`🪙 ${state.coins} coins available`),
+    React.createElement('div',{className:'shop-tabs'},
+      Object.entries(categories).map(([k,label])=>
+        React.createElement('div',{key:k,className:`shop-tab ${tab===k?'active':''}`,onClick:()=>setTab(k)},label))),
+    React.createElement('div',{className:'shop-grid'},
+      items.map(item=>{
+        const owned=purchased.includes(item.id);
+        const locked=getLevel(state.xp).lv<3;
+        return React.createElement('div',{
+          key:item.id,className:`shop-item ${owned?'owned':''}`,
+          style:{opacity:locked?0.5:1,cursor:locked?'default':'pointer'},
+          onClick:()=>{if(!locked)buy(item);}},
+          React.createElement('div',{className:'shop-emoji'},item.emoji),
+          React.createElement('div',{className:'shop-name'},item.name),
+          React.createElement('div',{className:'shop-desc'},item.desc),
+          React.createElement('div',{className:'shop-price'},owned?'✅ Owned':`🪙 ${item.price}`));
+      })));
+}
+
+// ============================================================
+// LOADING + DATA FETCH + ROOT
+// ============================================================
+function LoadingScreen(){
+  return React.createElement('div',{className:'loading'},
+    React.createElement('div',{style:{fontSize:40}},TRACKER_EMOJI),
+    React.createElement('div',{style:{fontSize:16,fontWeight:600}},`Loading ${APP_NAME}...`),
+    React.createElement('div',{className:'loading-bar'},
+      React.createElement('div',{className:'loading-fill'})));
+}
+
+function Root(){
+  const [data,setData]=useState(null);
+  const [error,setError]=useState(null);
+  useEffect(()=>{
+    fetch('data.json')
+      .then(r=>{if(!r.ok)throw new Error('Failed to load data.json');return r.json();})
+      .then(d=>{
+        console.log('[GutInstinct] Data loaded:',d.topics?.length,'topics');
+        setData(d);
+      })
+      .catch(e=>{console.error('[GutInstinct]',e);setError(e.message);});
+  },[]);
+  if(error)return React.createElement('div',{className:'loading'},
+    React.createElement('div',{style:{fontSize:40}},'⚠️'),
+    React.createElement('div',{style:{fontSize:16,color:'#ef4444'}},`Error: ${error}`),
+    React.createElement('div',{style:{fontSize:13,color:'var(--text2)',marginTop:8}},'Place data.json in the same directory as this file and serve via HTTP.'));
+  if(!data)return React.createElement(LoadingScreen,null);
+  return React.createElement(ToastProvider,null,React.createElement(App,{data}));
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Root));
+</script>
+</body>
+</html>
